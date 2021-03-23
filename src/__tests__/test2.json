@@ -1,0 +1,21 @@
+{
+    "type": "object",
+    "primaryKey":"id",
+    "required": ["name"],
+    "properties": {
+        "id": {
+            "type": "number"
+        },
+        "name": {
+            "type":"string",
+            "readOnly": true
+        },
+        "created_at": {
+            "type": ["object", "string", "integer"],
+            "format": "date-time",
+            "readOnly": true,
+            "transform": ["stringToDate"],
+            "default": null
+        }
+    }
+}

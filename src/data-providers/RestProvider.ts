@@ -1,0 +1,140 @@
+import {
+    DataProvider,
+    FetchParams,
+    IDataSource,
+    OptionsArg,
+    ResponseCollection,
+    ResponseEntity
+} from "../interfaces";
+import axios, {AxiosInstance} from "axios";
+import {DataSource, DEFAULT_SCHEMA} from "../";
+import Schema from "../Schema";
+
+// export function factory<T extends object = object>(url: string): DataSource<T>;
+// export function factory<T extends object = object>(data: T[] | string, schema: BaseRootSchema = DEFAULT_SCHEMA, options: OptionsArg<T> = {}) {
+//     return new DataSource<T>(
+//         data instanceof Array ? new ArrayProvider(data) : new RestProvider(data),
+//         new Schema<T>(schema),
+//         options,
+//     );
+// }
+
+type NormalizeParams<T extends object> = (params: FetchParams<T>) => object;
+
+export function normalizeJsonApiParams<T extends object>(params: FetchParams<T> ) {
+
+    const filter: { [key: string]: string } = {};
+    params.filter?.filters.forEach((item) => {
+        if ('field' in item) {
+            filter[item.field] = item.value;
+        }
+    });
+
+    return {
+        filter,
+        sort: params?.sort,
+        page: params?.page,
+        page_size: params?.pageSize,
+    }
+}
+
+export function normalizeRootFilterParams<T extends object>(params: FetchParams<T> ) {
+    let result: {filter?: object} = normalizeJsonApiParams(params)
+
+    const filter = result.filter;
+    delete result.filter;
+
+    return {
+        ...result,
+        ...filter,
+    };
+}
+
+
+export default class RestProvider<T extends object = object> implements DataProvider<T> {
+    constructor(
+        protected readonly url: string,
+        protected readonly http: AxiosInstance = axios,
+        protected readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
+        protected readonly normalizeParams: NormalizeParams<T> = (params: FetchParams<T> ) => ({
+            filter: params?.filter,
+            sort: params?.sort,
+            page: params?.page,
+            page_size: params?.pageSize,
+        }),
+    ) {
+    }
+
+    public createDataSource(options?: OptionsArg<T>): DataSource<T> {
+        return new DataSource<T>(this, this.schema, options)
+    }
+
+    async get(id: T[keyof T]): Promise<T | void> {
+        const response = await this.http.get<T>(`${this.url}/${id}`);
+        this.schema.validate(response.data)
+
+        return response.data
+    }
+
+    async create(model: Partial<T>): Promise<T> {
+        const response = await this.http.post<T>(this.url, this.schema.toScalar(model));
+        this.schema.validate(response.data)
+
+        return response.data
+    }
+
+    async fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> {
+
+        const response = await this.http.get<ResponseCollection<T>>(
+            this.url,
+            {
+                params: params && this.normalizeParams(params),
+            },
+        );
+
+        response.data.data.forEach((row) => {
+            this.schema.validate(row)
+        })
+
+        return response.data;
+    }
+
+    async update(primary: T[keyof T], model: Partial<T>): Promise<T> {
+        const response = await this.http.patch<T>(
+            `${this.url}/${primary}`,
+            this.schema.toScalar(model)
+        );
+        this.schema.validate(response.data)
+
+        return response.data
+    }
+
+    async remove(model: Partial<T>): Promise<void> {
+        await this.http.delete<T>(`${this.url}/${model[this.schema.primary as keyof T]}`);
+        return ;
+    }
+
+    async fetchByDataSource(dataSource: IDataSource<T>): Promise<ResponseCollection<T>> {
+
+        const filter: { [key: string]: string } = {};
+        if (dataSource.filter && Array.isArray(dataSource.filter.filters)) {
+            // dataSource.filters.filters.forEach((item) => {
+            //     filter[item.field] = item.value;
+            // });
+        }
+
+        const response = await this.http.get<ResponseCollection<T>>(
+            this.url,
+            {
+                params: {
+                    ...filter,
+                    sort: dataSource.sort,
+                    page: dataSource.page,
+                    page_size: dataSource.pageSize,
+                },
+            },
+        );
+
+        return response.data;
+    }
+}

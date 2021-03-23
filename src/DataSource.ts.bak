@@ -1,0 +1,275 @@
+import {
+    DataProvider,
+    DataSourceFilterItem,
+    DataSourceFilters,
+    IDataSource as DataSourceInterface,
+    IModel,
+    IModelT,
+    OptionsArg,
+    SortDir,
+    SortOptions,
+    SortOptions1,
+    SortOptions2,
+} from "./interfaces";
+import {action, intercept, makeAutoObservable, makeObservable, observable, observe, toJS} from "mobx";
+import {createModel, normalizeFilter, normalizeSort, Schema, DEFAULT_SCHEMA} from "./";
+
+// todo
+// 1. option autoAsync
+// 2. endless
+// 3. pageable
+
+interface Changes<T> {
+    added: IModelT<T>[],
+    removed: IModelT<T>[],
+    updated: IModelT<T>[],
+}
+
+export class DataSource<T extends object = object> implements DataSourceInterface<T> {
+    static defaultPageSize = 20;
+
+    private lastFetchProcess?: Promise<IModelT<T>[]>;
+
+    data: (IModelT<T>)[] = [];
+    loading: boolean = false;
+
+    page = 1;
+    pageSize = DataSource.defaultPageSize;
+    total = 0;
+    filter: DataSourceFilters<T> | null = null;
+    sort: (SortOptions1 | SortOptions2<T>)[] = [];
+
+    private changes: Changes<T> = {
+        added: [],
+        removed: [],
+        updated: [],
+    };
+    private originData: (IModelT<T>)[] = [];
+
+    constructor(
+        public readonly dataProvider: DataProvider<T>,
+        public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
+        private options: OptionsArg<T> = {},
+    ) {
+
+        if (options.pageSize) {
+            this.pageSize = options.pageSize;
+        }
+        if (options.page) {
+            this.page = options.page;
+        }
+
+        makeAutoObservable(this, undefined, {deep: true})
+
+        // const initData = () => {
+        //
+        // }
+        //
+        // intercept(this, 'data', (c) => {
+        //     if (c.type === "update") {
+        //         throw new Error("Deny change.");
+        //     }
+        //     if (! Array.isArray(c.newValue)) {
+        //         throw new Error('Type error');
+        //     }
+        //
+        //     c.newValue = c.newValue
+        //
+        //     return c;
+        // });
+        // observe(this, 'data', () => {
+        //     initData
+        // });
+        // const data = (this.data as IObservableArray<IModelT<T>>);
+
+        // data.observe((change) => {
+        //     if (change.type == 'update') {
+        //         return ;
+        //     }
+        //     change.added.forEach((item) => {
+        //         observe(item, (change) => {
+        //             this.changes.updates.push(item);
+        //         })
+        //     });
+        //
+        //     this.changes.splices.push(change as IArraySplice<IModel<T>>);
+        // })
+
+        // intercept(data, (c) => {
+        //     if (c.type === "update") {
+        //         throw new Error("Deny update array items.");
+        //     }
+        //
+        //     return c;
+        // });
+    }
+
+    get primary() {
+        return this.schema.primary
+    }
+
+    insert(index: number, obj: T| object): IModelT<T> {
+        this.schema.validate(obj);
+        const m = this.parse(obj as T);
+        this.data.splice(index, 0, m);
+        this.changes.added.push(m);
+        return m;
+    }
+
+    add(obj: T | object): IModelT<T> {
+        this.schema.validate(obj);
+        const m = this.parse(obj as T);
+        this.data.push(m);
+        this.changes.added.push(m);
+        return m;
+    }
+
+    cancelChanges(model?: IModelT<T>) {
+        if (model) {
+            // Added
+            if (model.isNew()) {
+                const index = this.data.findIndex((m) => m === model);
+                this.data.splice(index, 1);
+
+                const changeIndex = this.changes.added.findIndex((m) => m === model);
+                this.changes.added.splice(changeIndex, 1);
+                return ;
+            }
+
+            // Updated
+            if (model.isDirty()) {
+                model.reset();
+                return ;
+            }
+
+            // Removed
+            const index = this.changes.removed.findIndex((m) => m === model);
+            if (index !== -1) {
+                this.changes.removed.splice(index, 1);
+                this.data.push(model);
+            }
+            return ;
+        }
+
+        this.data = this.originData.slice();
+
+        const changes = this.changes;
+        changes.updated.forEach((updateModel) => {
+            updateModel.reset();
+        });
+        changes.added = [];
+        changes.updated = [];
+        changes.removed = [];
+    }
+
+    async fetchInit(): Promise<IModelT<T>[]> {
+        if (! this.lastFetchProcess) {
+            this.lastFetchProcess = this.fetch();
+        }
+
+        return this.lastFetchProcess;
+    }
+
+    async fetch(): Promise<IModelT<T>[]> {
+
+        const call = async () => {
+            this.loading = true;
+            try {
+
+                const result = await this.dataProvider.fetch(this);
+
+                if (result.total !== undefined) {
+                    this.total = result.total;
+                }
+
+                this.data = result.data.map((item) => this.parse(item));
+                this.originData = this.data.slice()
+            } finally {
+                this.loading = false;
+            }
+
+            return this.data;
+        }
+
+        this.lastFetchProcess = call();
+
+        return this.lastFetchProcess;
+    }
+
+    remove(model: IModelT<T>): number {
+        if (model.isNew()) {
+            this.cancelChanges(model);
+            return -1;
+        }
+
+        const i = this.data.findIndex((row) => row === model);
+        if (i !== -1) {
+            this.data.splice(i, 1);
+            this.changes.removed.push(model);
+        }
+
+        return i;
+    }
+
+    setSort(field: SortOptions<T>, dir?: SortDir): (SortOptions1 | SortOptions2<T>)[] {
+        this.sort = normalizeSort(field, dir);
+        return this.sort;
+    }
+
+    setFilter(filters: DataSourceFilterItem<T> | DataSourceFilterItem<T>[] | DataSourceFilters<T> | null): DataSourceFilters<T> | null {
+        this.filter = normalizeFilter(filters);
+
+        return this.filter;
+    }
+
+    get(id: T[keyof T]): IModelT<T> | undefined {
+        return this.data.find((item) => item[this.primary] === id);
+    }
+
+    async sync() {
+        const changes = this.changes;
+        console.log(changes)
+
+        const submitModel = (model: IModelT<T>, newModel: T) => {
+            Object.entries(newModel).forEach(([key, val]) => {
+                model.set(key, val)
+            })
+            model.submit()
+        }
+
+        for (const model of changes.added) {
+            const newModel = await this.dataProvider.create(model);
+            submitModel(model, newModel)
+        }
+        for (const model of changes.updated) {
+            const newModel = await this.dataProvider.update(model[this.primary], model.dirtyFields());
+            submitModel(model, newModel)
+        }
+        for (const model of changes.removed) {
+            await this.dataProvider.remove(model);
+        }
+        this.originData = this.data.slice()
+        this.data = this.data.slice()
+        changes.added = [];
+        changes.updated = [];
+        changes.removed = [];
+        return;
+    }
+
+    private parse(obj: T): IModelT<T> {
+
+        const m = createModel<T>(obj, this.schema);
+
+        m.observe((change) => {
+            if (this.changes.updated.indexOf(m) === -1) {
+                this.changes.updated.push(m);
+            }
+        });
+
+        return m;
+    }
+
+    toJS(): T[] {
+        return this.data.map(item => item.toJS())
+    }
+}
