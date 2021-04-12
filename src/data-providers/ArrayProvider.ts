@@ -1,4 +1,4 @@
-import {DataProvider, DataSourceQueue, FetchParams, IDataSource, OptionsArg, ResponseCollection} from "../interfaces";
+import {DataProvider, FetchParams, OptionsArg, ResponseCollection} from "../interfaces";
 import {DataSource, DEFAULT_SCHEMA} from "../";
 import Schema from "../Schema";
 
@@ -11,7 +11,7 @@ import Schema from "../Schema";
 //     );
 // }
 
-export default class ArrayProvider<T extends object> implements DataProvider<T> {
+export default class ArrayProvider<T extends object = object> implements DataProvider<T> {
     constructor(
         private data: T[],
         public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
@@ -77,20 +77,5 @@ export default class ArrayProvider<T extends object> implements DataProvider<T> 
             data: this.data.slice(start, start + pageSize),
             total: this.data.length,
         });
-    }
-
-    async sync(queue: DataSourceQueue<T>, dataSource: IDataSource<T>): Promise<void> {
-        queue.added.forEach((model) => {
-            this.data.push(model.toJs());
-        });
-        queue.updated.forEach((model) => {
-            this.data.findIndex((item) => model === item);
-            model.submit();
-        });
-        queue.removed.forEach((model) => {
-            this.data.findIndex((item) => model === item);
-            model.submit();
-        });
-        return;
     }
 }

@@ -1,9 +1,9 @@
-import {DataSource} from "../DataSource";
-import Model from "../CreateModel";
+import {ArrayProvider, Model} from "../src";
 
 describe('DataSource', () => {
     it('DataSource add model', () => {
-        const ds = DataSource.factory('test');
+
+        const ds = (new ArrayProvider<object>([])).createDataSource()
         const m = ds.add({name: 'test'});
         expect(ds.data.length).toBe(1);
         expect(m.isNew()).toBeTruthy();
@@ -16,9 +16,9 @@ describe('DataSource', () => {
     });
 
     it('should cancelChanges', function () {
-        const ds = DataSource.factory('test');
-        const m = ds.add({name: 'test'});
-        const m2 = ds.insert(0, {name: 'test0'});
+        const ds = (new ArrayProvider<object>([])).createDataSource()
+        ds.add({name: 'test'});
+        ds.insert(0, {name: 'test0'});
 
         ds.cancelChanges();
 
@@ -26,7 +26,8 @@ describe('DataSource', () => {
     });
 
     it('DataSource get model', () => {
-        const ds = DataSource.factory<{id: number, name: string}>('test');
+
+        const ds = (new ArrayProvider<{id: number, name: string}>([])).createDataSource()
         ds.add({id: 123, name: 'test'});
         const m = ds.get(123);
         expect(m).toBeInstanceOf(Model);
@@ -37,7 +38,7 @@ describe('DataSource', () => {
     });
 
     it('DataSource remove model', () => {
-        const ds = DataSource.factory('test');
+        const ds = (new ArrayProvider([])).createDataSource()
         const m = ds.add({name: 'test'});
         ds.remove(m);
         expect(ds.data.length).toBe(0);

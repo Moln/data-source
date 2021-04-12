@@ -13,13 +13,18 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "echo tsdx test",
+    "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "husky install",
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "ajv": "^8.0.5",
+    "ajv-keywords": "^5.0.0",
+    "mobx": "^6.1.8",
+    "mobx-utils": "^6.0.4"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -31,7 +36,7 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "data-source",
+  "name": "@moln/data-source",
   "author": "Moln",
   "module": "dist/data-source.esm.js",
   "size-limit": [
@@ -46,14 +51,13 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.10.1",
+    "axios": "^0.21.1",
+    "axios-mock-adapter": "^1.19.0",
     "husky": "^5.2.0",
     "size-limit": "^4.10.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
     "typescript": "^4.2.3"
   },
-  "dependencies": {
-    "mobx": "^6.1.8",
-    "mobx-utils": "^6.0.3"
-  }
+  "dependencies": {}
 }

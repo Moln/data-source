@@ -1,5 +1,6 @@
 import type {DataSource} from "./DataSource";
-import type {deepObserve} from "mobx-utils";
+import type {deepObserve} from "./mobx/utils";
+import Schema from "./Schema";
 
 export type FieldType<T> = keyof T | string | ((d: T) => string);
 
@@ -178,6 +179,8 @@ export interface DataSourceQueue<T> {
 }
 
 export interface DataProvider<T extends object = object> {
+    readonly schema: Schema<T>;
+
     createDataSource(options?: OptionsArg<T>): DataSource<T>;
     fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> ;
 

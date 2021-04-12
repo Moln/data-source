@@ -1,6 +1,7 @@
 import {JSONSchema7} from "json-schema";
-import Ajv, {ValidateFunction} from "ajv";
-import defineKeywords from "ajv-keywords";
+import Ajv from "ajv";
+import {guid} from "./utils";
+import {AnyValidateFunction} from "ajv/lib/types/index";
 
 export interface BaseRootSchema extends JSONSchema7 {
     type: "object";
@@ -14,24 +15,36 @@ export const DEFAULT_SCHEMA: BaseRootSchema = {
 
 export default class Schema<T extends object = object> {
 
-    public readonly validate: ValidateFunction;
-    // public readonly validate: <T2 extends object>(obj: T2) => (T & T2) | false;
+    public readonly validate: AnyValidateFunction<T>;
 
     public readonly schema: BaseRootSchema;
 
-    constructor(schema: Partial<BaseRootSchema> = DEFAULT_SCHEMA) {
-        this.schema = Object.assign({}, DEFAULT_SCHEMA, schema);
-        const ajv = new Ajv({
-            useDefaults: true,
-            coerceTypes: true,
-        });
-        ajvKeywordTransformToDate(ajv);
-        ajvKeywordReadOnly(ajv);
-        ajvKeywordPrimaryKey(ajv);
-        defineKeywords(ajv as any, 'instanceof');
-        const validate = ajv.compile(schema);
+    private ajv: Ajv;
 
-        this.validate = validate;
+    constructor(schema: Ajv, schemaName: string)
+    constructor(schema: Partial<BaseRootSchema>)
+    constructor(schema: Ajv | Partial<BaseRootSchema> = DEFAULT_SCHEMA, private schemaName: string = guid())
+    {
+        let ajv: Ajv;
+        if (schema instanceof Ajv) {
+            ajv = schema
+        } else {
+            ajv = new Ajv({
+                useDefaults: true,
+                coerceTypes: true,
+            });
+            // ajvKeywordTransformToDate(ajv);
+            // ajvKeywordReadOnly(ajv);
+            ajvKeywordPrimaryKey(ajv);
+            ajv.addSchema(schema, schemaName);
+        }
+
+        this.ajv = ajv;
+        this.validate = ajv.getSchema<T>(schemaName)!
+        this.schema = this.validate.schema as BaseRootSchema;
+
+        // const validate = ajv.compile(schema);
+        // this.validate = validate;
         // this.validate = <T2 extends object>(obj: T2) : (T & T2) | false => {
         //     if (! validate(obj)) {
         //         return false;
@@ -44,10 +57,27 @@ export default class Schema<T extends object = object> {
         return this.schema.primaryKey as keyof T & string;
     }
 
+    isReadOnly(keys: string | string[]): boolean {
+        const validator = this.getSchema(keys)
+        return (validator?.schema as any)?.readOnly;
+    }
+
+    getSchema<T = unknown>(keys: string | string[] = []) {
+        const path = buildPath(keys);
+        return this.ajv.getSchema<T>(this.schemaName + path)
+    }
+
     toScalar(model: Partial<T>) {
         // TODO to scalar data
         return model;
     }
+}
+
+function buildPath(keys: string | string[]) {
+    if (typeof keys == 'string') {
+        keys = [keys]
+    }
+    return keys.length ? '#/properties/' + keys.join('/properties/') : '';
 }
 
 function isPlanObject(obj: object) {
@@ -106,9 +136,10 @@ export function schemaDefaultValues(schema: JSONSchema7): object {
 //     return obj;
 // }
 
-function ajvKeywordPrimaryKey(ajv: Ajv.Ajv) {
+function ajvKeywordPrimaryKey(ajv: Ajv) {
 
-    ajv.addKeyword('primaryKey', {
+    ajv.addKeyword({
+        keyword: "primaryKey",
         type: "object",
         errors: false,
         valid: true,
@@ -119,61 +150,61 @@ function ajvKeywordPrimaryKey(ajv: Ajv.Ajv) {
     })
 }
 
-function ajvKeywordReadOnly(ajv: Ajv.Ajv) {
-    ajv.removeKeyword('readOnly');
-    ajv.addKeyword('readOnly', {
-        errors: false,
-        modifying: true,
-        valid: true,
-        metaSchema: {
-            type: 'boolean',
-            default: false,
-        },
-        compile(): ValidateFunction {
+// function ajvKeywordReadOnly(ajv: Ajv) {
+//     ajv.removeKeyword('readOnly');
+//     ajv.addKeyword({
+//         keyword: "readOnly",
+//         errors: false,
+//         modifying: true,
+//         valid: true,
+//         metaSchema: {
+//             type: 'boolean',
+//             default: false,
+//         },
+//         compile: () => {
+//             return () => {
+//                 Object.defineProperty(object, key as string, {
+//                     writable: false,
+//                 });
+//
+//                 return true;
+//             };
+//         },
+//     });
+// }
 
-            return (_, _1, object, key) => {
-                Object.defineProperty(object, key as string, {
-                    writable: false,
-                });
-
-                return true;
-            };
-        },
-    });
-}
-
-function ajvKeywordTransformToDate(ajv: Ajv.Ajv) {
-    ajv.addKeyword('transform', {
-        errors: false,
-        modifying: true,
-        valid: true,
-        metaSchema: {
-            type: 'array',
-            items: {
-                type: 'string',
-                enum: [
-                    'stringToDate',
-                    'secToDate',
-                    'msecToDate',
-                ]
-            }
-        },
-        compile(schema): ValidateFunction {
-
-            return (data, dataPath, object, key) => {
-                if (data instanceof Date) {
-                    return true;
-                } else if (typeof data === "string") {
-                    (object as { [x: string]: any })[key as string] = new Date(data);
-                } else if (typeof data === "number" && schema === "secToDate") {
-                    (object as { [x: string]: any })[key as string] = new Date(data * 1000);
-                } else if (typeof data === "number" && schema === "msecToDate") {
-                    (object as { [x: string]: any })[key as string] = new Date(data);
-                } else {
-                    return false;
-                }
-                return true;
-            };
-        },
-    });
-}
+// function ajvKeywordTransformToDate(ajv: Ajv) {
+//     ajv.addKeyword({
+//         keyword: 'transform',
+//         errors: false,
+//         modifying: true,
+//         valid: true,
+//         metaSchema: {
+//             type: 'array',
+//             items: {
+//                 type: 'string',
+//                 enum: [
+//                     'stringToDate',
+//                     'secToDate',
+//                     'msecToDate',
+//                 ]
+//             }
+//         },
+//         compile(transform: string) {
+//             return (data: string | number | Date) => {
+//                 if (data instanceof Date) {
+//                     return true;
+//                 } else if (typeof data === "string") {
+//                     (object as { [x: string]: any })[key as string] = new Date(data);
+//                 } else if (typeof data === "number" && transform === "secToDate") {
+//                     (object as { [x: string]: any })[key as string] = new Date(data * 1000);
+//                 } else if (typeof data === "number" && transform === "msecToDate") {
+//                     (object as { [x: string]: any })[key as string] = new Date(data);
+//                 } else {
+//                     return false;
+//                 }
+//                 return true;
+//             };
+//         },
+//     });
+// }

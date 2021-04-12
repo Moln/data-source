@@ -1,6 +1,6 @@
 import Schema from './Schema';
 import Model from './Model';
-import Query from './Model';
+import Query from './Query';
 import RestProvider from './data-providers/RestProvider';
 import ArrayProvider from './data-providers/ArrayProvider';
 import OfflineServerProvider from './data-providers/OfflineServerProvider';

@@ -4,7 +4,6 @@ import {
     IDataSource,
     OptionsArg,
     ResponseCollection,
-    ResponseEntity
 } from "../interfaces";
 import axios, {AxiosInstance} from "axios";
 import {DataSource, DEFAULT_SCHEMA} from "../";
@@ -55,7 +54,7 @@ export default class RestProvider<T extends object = object> implements DataProv
     constructor(
         protected readonly url: string,
         protected readonly http: AxiosInstance = axios,
-        protected readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
+        public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
         protected readonly normalizeParams: NormalizeParams<T> = (params: FetchParams<T> ) => ({
             filter: params?.filter,
             sort: params?.sort,

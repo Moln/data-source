@@ -1,12 +1,27 @@
 import {extendObservable, observable} from "mobx";
-import {createModel} from "../";
+import {BaseRootSchema, createModel, DEFAULT_SCHEMA, Schema} from "../src";
+
+const testSchema: BaseRootSchema = Object.assign({
+    properties: {
+        id: {
+            type: "integer",
+        },
+        name: {
+            type: "string",
+        },
+        role: {
+            type: "string",
+            readOnly: true,
+        }
+    }
+}, DEFAULT_SCHEMA)
 
 describe('DataSource/Model', () => {
     it('starts at 0', () => {
 
         const m = createModel({id: 123, name: 'Test', isDirty: 222, sub: {a: [{a2: 1}], b:2}});
 
-        m.observe(change => console.log(change))
+        // m.observe(change => console.log(change))
 
         expect(m.isDirty()).toBeFalsy();
 
@@ -23,18 +38,16 @@ describe('DataSource/Model', () => {
 
     it('should model success', function () {
 
-        const obj2 = {id: 123, name: 'Test', get age() {return 34}, job: 'sexy'};
+        const obj2 = {id: 123, name: 'Test', get age() {return 34}, role: 'Developer', o: {a: 1}};
 
-        Object.defineProperty(obj2, 'job', {
-            writable: false,
-        });
-        const m = createModel(obj2);
+        const m = createModel(obj2, new Schema<typeof obj2>(testSchema));
 
-        m.job = "342";
-        m.name = "ss";
+        m.o.a = 2
+        // m.role = "tester";
+        // m.name = "ss";
         expect(m.id).toBe(obj2.id);
         expect(m.isDirty()).toBeTruthy();
-        expect(m.job).toBe("sexy");
+        expect(m.role).toBe("Developer");
     });
 
     it('should init model', function () {
@@ -56,6 +69,6 @@ describe('DataSource/Model', () => {
 
         obj1.name = 'Test123';
 
-        expect(obj1.dirtyFields()).toBe({name: 'Test'});
+        expect(obj1.dirtyFields()).toEqual({name: 'Test123'});
     });
 });

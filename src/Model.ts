@@ -1,8 +1,8 @@
 import Schema, {DEFAULT_SCHEMA} from "./Schema";
 import {IModel, IModelT} from "./interfaces";
-import {intercept, observable, runInAction, toJS,} from "mobx"
-import {deepObserve} from "mobx-utils";
+import {observable, runInAction, toJS,} from "mobx"
 import {guid} from "./utils";
+import {deepObserve, deepIntercept} from "./mobx/utils";
 
 const PROPERTIES = Symbol('dataSource.model');
 
@@ -27,6 +27,10 @@ interface ModelProperties<T extends object> {
 }
 
 function defineProperty<T extends object>(model: Model<T>, obj: T, key: keyof T | string) {
+
+    if (Model.prototype.hasOwnProperty(key)) {
+        return ;
+    }
 
     const descriptor = Object.getOwnPropertyDescriptor(obj, key)
     const additionalDescriptor = descriptor ? { enumerable: descriptor.enumerable } : {}
@@ -54,8 +58,9 @@ export default class Model<T extends object> implements IModel<T> {
         //     resetProperty: action,
         // })
 
-        if (! schema.validate(model)) {
-            console.warn('Error model value: ', schema.validate.errors, model);
+        const validate = schema.getSchema();
+        if (validate && ! validate(model)) {
+            console.warn('Error model value: ', validate, model);
             throw new Error('Error model value: ' + JSON.stringify(model))
         }
 
@@ -69,13 +74,11 @@ export default class Model<T extends object> implements IModel<T> {
         } as ModelProperties<T>;
 
         Object.keys(model).forEach((key) => {
-            if (!(key in this)) {
-                defineProperty(this, obModel, key as keyof T)
-            }
+            defineProperty(this, obModel, key as keyof T)
         })
 
         deepObserve(obModel, (change, path, root) => {
-            const name = (change.object === root ? (change as any).name : path.split('/')[0]) as keyof T;
+            const name = (change.object === root ? (change as any).name : path[0]) as keyof T;
             if (typeof name !== "string") return;
 
             const index = properties.dirtyFields.indexOf(name);
@@ -109,9 +112,22 @@ export default class Model<T extends object> implements IModel<T> {
         //     }
         // });
 
-        intercept(obModel, (change) => {
-            console.log(change);
-            // model.schema.validate()
+        deepIntercept(obModel, (change, path) => {
+            if ('name' in change) {
+                path = path.concat([change.name as string])
+            }
+            if (schema.isReadOnly(path)) {
+                return null;
+            }
+            switch (change.type) {
+                case "update":
+                    const validate = schema.getSchema(path);
+                    if (validate && ! validate(change.newValue)) {
+                        console.warn('Error model value:', validate, path)
+                        return null;
+                    }
+            }
+
             return change;
         });
     }
@@ -157,7 +173,7 @@ export default class Model<T extends object> implements IModel<T> {
 
             let target: any = model;
             let lastKey = _keys.pop();
-            _keys.forEach((key, index) => {
+            _keys.forEach((key) => {
                 target = target[key]
             })
 
@@ -223,97 +239,10 @@ export default class Model<T extends object> implements IModel<T> {
     }
 
     observe(listener: Parameters<typeof deepObserve>[1]) {
-        deepObserve(this[PROPERTIES].obModel, listener)
+        return deepObserve(this[PROPERTIES].obModel, listener)
     }
 }
 
 export function createModel<T extends object>(obj: T, schema?: Schema<T>): IModelT<T> {
     return new Model<T>(obj, schema) as any;
 }
-
-/*
-export function model<T extends Object = Object>(obj: T): T & {[MODEL]: ModelProperties} {
-    // return (new Model(obj, schema || new Schema(DEFAULT_SCHEMA))) as Model<T> & T;
-    let canceling = false;
-    const model: ModelProperties = {
-        dirty: false,
-        dirtyFields: {},
-        cancelChange(): void {
-            canceling = true;
-            Object.keys(this.dirtyFields).forEach((key) => {
-                if (this.dirtyFields[key] === undefined) {
-                    delete (obj as {[x: string]: any;})[key];
-                } else {
-                    (obj as {[x: string]: any;})[key] = this.dirtyFields[key]
-                }
-            });
-            this.dirtyFields = {};
-            this.dirty = false;
-            canceling = false;
-        }
-    };
-
-    const obj1 = observable(obj as T & {[MODEL]: ModelProperties});
-
-    obj1[MODEL] = model;
-
-    observe(obj1, (change: IObjectDidChange) => {
-        if (typeof change.name !== "string" || canceling) return;
-        const name: string = change.name;
-        model.dirty = true;
-        if (! model.dirtyFields.hasOwnProperty(change.name)) {
-            switch (change.type) {
-                case "add":
-                    model.dirtyFields[name] = undefined;
-                    break;
-                case "update":
-                case "remove":
-                    model.dirtyFields[name] = change.oldValue;
-                    break;
-            }
-        }
-    });
-
-    return obj1;
-}
-*/
-/*
-export class Model<T extends object> {
-    private [MODEL]: ModelProperties;
-
-    constructor(obj: T, schema?: Schema) {
-        extendObservable(this, obj);
-        observe(this, (change: IObjectDidChange) => {
-            if (change.type == 'update' && change.oldValue === change.newValue) {
-                // this[MODEL].dirty = true;
-            }
-        });
-
-        // this[MODEL] = {
-        //     dirty: false,
-        //     // schema: schema,
-        //     dirtyFields: {},
-        // };
-
-        // for (let key in obj) {
-        //     Object.defineProperty(this, key, {
-        //         get: () => obj[key],
-        //         set: (value: any) => {
-        //             if (obj[key] !== value) {
-        //                 obj[key] = value;
-        //                 // this.updatedKeys.push(key);
-        //             }
-        //         },
-        //     });
-        // }
-    }
-
-    // isNew(): boolean {
-    //     // return !(this as any)[this[MODEL].schema.primary];
-    // }
-    //
-    // isDirty(): boolean {
-    //     // return this[MODEL].dirty;
-    // }
-}
-*/

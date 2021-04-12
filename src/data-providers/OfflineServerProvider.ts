@@ -1,21 +1,13 @@
-import {
-    ArrayProvider,
-    DataProvider,
-    DataSource,
-    DEFAULT_SCHEMA,
-    FetchParams,
-    OptionsArg,
-    ResponseCollection,
-} from "../index";
-import Schema from "../Schema";
+import {ArrayProvider, DataProvider, DataSource, FetchParams, OptionsArg, ResponseCollection,} from "../index";
 
 export default class OfflineServerProvider<T extends object = object>  implements DataProvider<T>  {
 
-    private data?: ArrayProvider<T>;
+    private data: ArrayProvider<T> | null = null;
+
+    readonly schema = this.serverProvider.schema;
 
     constructor(
         private serverProvider: DataProvider<T>,
-        private readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
     ) {
     }
 
@@ -33,19 +25,28 @@ export default class OfflineServerProvider<T extends object = object>  implement
         return this.data.fetch(params);
     }
 
-    create(model: Partial<T>): Promise<T> {
-        return this.serverProvider.create(model);
+    async create(model: Partial<T>): Promise<T> {
+        const result = await this.serverProvider.create(model);
+        this.data = null;
+        return result;
     }
 
-    get(primary: T[keyof T]): Promise<T | void> {
-        return this.serverProvider.get(primary);
+    async get(primary: T[keyof T]): Promise<T | void> {
+        if (! this.data) {
+            return this.serverProvider.get(primary);
+        }
+
+        return this.data.get(primary)
     }
 
-    remove(model: Partial<T>): Promise<void> {
-        return this.serverProvider.remove(model);
+    async remove(model: Partial<T>): Promise<void> {
+        await this.serverProvider.remove(model);
+        this.data = null;
     }
 
-    update(primary: T[keyof T], model: Partial<T>): Promise<T> {
-        return this.serverProvider.update(primary, model);
+    async update(primary: T[keyof T], model: Partial<T>): Promise<T> {
+        const result = await this.serverProvider.update(primary, model);
+        this.data = null;
+        return result;
     }
 }

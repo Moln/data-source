@@ -1,5 +1,5 @@
-import Query from "../Query";
-import {GroupItem} from "../interfaces";
+import {Query} from "../src";
+import {GroupItem} from "../src/interfaces";
 
 describe('Query', () => {
     function genData() {
@@ -81,13 +81,13 @@ describe('Query', () => {
         expect(q3.orderByDescending('id').toArray()[0].id).toBe(10);
 
         const q4 = q.filter({field: "age", operator: ">", value: 10});
-        expect(q4.toArray().length).toBe(10);
+        expect(q4.toArray().length).toBe(19);
         expect(q4.orderByDescending('id').toArray()[0].id).toBe(20);
 
 
         const q5 = q.filter({field: "id", operator: ">", value: 10});
-        expect(q4.toArray().length).toBe(10);
-        expect(q4.orderByDescending('id').toArray()[0].id).toBe(20);
+        expect(q5.toArray().length).toBe(10);
+        expect(q5.orderByDescending('id').toArray()[0].id).toBe(20);
 
         const q6 = q.filter([{field: "id", operator: ">", value: 2}, {field: "id", operator: "<=", value: 4}]);
         expect(q6.toArray().length).toBe(2);
