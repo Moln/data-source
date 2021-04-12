@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -50,16 +50,15 @@
   ],
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.10.1",
+    "ajv": "^8.0.5",
     "axios": "^0.21.1",
     "axios-mock-adapter": "^1.19.0",
     "husky": "^5.2.0",
+    "mobx": "^6.1.8",
     "size-limit": "^4.10.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
-    "typescript": "^4.2.3",
-    "ajv": "^8.0.5",
-    "mobx": "^6.1.8"
+    "typescript": "^4.2.3"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
