@@ -11,4 +11,11 @@ export * from './Model';
 export * from './Query';
 export * from './Schema';
 export * from './data-providers/RestProvider';
-export {Schema, Model, RestProvider, ArrayProvider, OfflineServerProvider, Query};
+export {
+  Schema,
+  Model,
+  RestProvider,
+  ArrayProvider,
+  OfflineServerProvider,
+  Query,
+};

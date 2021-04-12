@@ -1,113 +1,113 @@
-import {JSONSchema7} from "json-schema";
-import Ajv from "ajv";
-import {guid} from "./utils";
-import {AnyValidateFunction} from "ajv/lib/types/index";
+import { JSONSchema7 } from 'json-schema';
+import Ajv from 'ajv';
+import { guid } from './utils';
+import { AnyValidateFunction } from 'ajv/lib/types/index';
 
 export interface BaseRootSchema extends JSONSchema7 {
-    type: "object";
-    primaryKey: string;
+  type: 'object';
+  primaryKey: string;
 }
 
 export const DEFAULT_SCHEMA: BaseRootSchema = {
-    type: "object",
-    "primaryKey": "id",
+  type: 'object',
+  primaryKey: 'id',
 };
 
 export default class Schema<T extends object = object> {
+  public readonly validate: AnyValidateFunction<T>;
 
-    public readonly validate: AnyValidateFunction<T>;
+  public readonly schema: BaseRootSchema;
 
-    public readonly schema: BaseRootSchema;
+  private ajv: Ajv;
 
-    private ajv: Ajv;
-
-    constructor(schema: Ajv, schemaName: string)
-    constructor(schema: Partial<BaseRootSchema>)
-    constructor(schema: Ajv | Partial<BaseRootSchema> = DEFAULT_SCHEMA, private schemaName: string = guid())
-    {
-        let ajv: Ajv;
-        if (schema instanceof Ajv) {
-            ajv = schema
-        } else {
-            ajv = new Ajv({
-                useDefaults: true,
-                coerceTypes: true,
-            });
-            // ajvKeywordTransformToDate(ajv);
-            // ajvKeywordReadOnly(ajv);
-            ajvKeywordPrimaryKey(ajv);
-            ajv.addSchema(schema, schemaName);
-        }
-
-        this.ajv = ajv;
-        this.validate = ajv.getSchema<T>(schemaName)!
-        this.schema = this.validate.schema as BaseRootSchema;
-
-        // const validate = ajv.compile(schema);
-        // this.validate = validate;
-        // this.validate = <T2 extends object>(obj: T2) : (T & T2) | false => {
-        //     if (! validate(obj)) {
-        //         return false;
-        //     }
-        //     return obj as T & T2;
-        // }
+  constructor(schema: Ajv, schemaName: string);
+  constructor(schema: Partial<BaseRootSchema>);
+  constructor(
+    schema: Ajv | Partial<BaseRootSchema> = DEFAULT_SCHEMA,
+    private schemaName: string = guid()
+  ) {
+    let ajv: Ajv;
+    if (schema instanceof Ajv) {
+      ajv = schema;
+    } else {
+      ajv = new Ajv({
+        useDefaults: true,
+        coerceTypes: true,
+      });
+      // ajvKeywordTransformToDate(ajv);
+      // ajvKeywordReadOnly(ajv);
+      ajvKeywordPrimaryKey(ajv);
+      ajv.addSchema(schema, schemaName);
     }
 
-    get primary(): keyof T & string {
-        return this.schema.primaryKey as keyof T & string;
-    }
+    this.ajv = ajv;
+    this.validate = ajv.getSchema<T>(schemaName)!;
+    this.schema = this.validate.schema as BaseRootSchema;
 
-    isReadOnly(keys: string | string[]): boolean {
-        const validator = this.getSchema(keys)
-        return (validator?.schema as any)?.readOnly;
-    }
+    // const validate = ajv.compile(schema);
+    // this.validate = validate;
+    // this.validate = <T2 extends object>(obj: T2) : (T & T2) | false => {
+    //     if (! validate(obj)) {
+    //         return false;
+    //     }
+    //     return obj as T & T2;
+    // }
+  }
 
-    getSchema<T = unknown>(keys: string | string[] = []) {
-        const path = buildPath(keys);
-        return this.ajv.getSchema<T>(this.schemaName + path)
-    }
+  get primary(): keyof T & string {
+    return this.schema.primaryKey as keyof T & string;
+  }
 
-    toScalar(model: Partial<T>) {
-        // TODO to scalar data
-        return model;
-    }
+  isReadOnly(keys: string | string[]): boolean {
+    const validator = this.getSchema(keys);
+    return (validator?.schema as any)?.readOnly;
+  }
+
+  getSchema<T = unknown>(keys: string | string[] = []) {
+    const path = buildPath(keys);
+    return this.ajv.getSchema<T>(this.schemaName + path);
+  }
+
+  toScalar(model: Partial<T>) {
+    // TODO to scalar data
+    return model;
+  }
 }
 
 function buildPath(keys: string | string[]) {
-    if (typeof keys == 'string') {
-        keys = [keys]
-    }
-    return keys.length ? '#/properties/' + keys.join('/properties/') : '';
+  if (typeof keys == 'string') {
+    keys = [keys];
+  }
+  return keys.length ? '#/properties/' + keys.join('/properties/') : '';
 }
 
 function isPlanObject(obj: object) {
-    return Object.keys(obj).length === 0
+  return Object.keys(obj).length === 0;
 }
 
 export function schemaDefaultValues(schema: JSONSchema7): object {
-    const values: { [key: string]: any } = {};
-    const properties = schema.properties as { [key: string]: JSONSchema7 };
-    if (properties) {
-        Object.entries(properties).forEach(([key, item]) => {
-            switch (item.type) {
-                case "object":
-                    const subValues = schemaDefaultValues(item);
-                    if (! isPlanObject(subValues)) {
-                        values[key] = subValues;
-                    }
-                    break;
-                default:
-                    if (item.default !== undefined) {
-                        values[key] = item.default
-                    }
-                    break;
-            }
-        })
-    }
+  const values: { [key: string]: any } = {};
+  const properties = schema.properties as { [key: string]: JSONSchema7 };
+  if (properties) {
+    Object.entries(properties).forEach(([key, item]) => {
+      switch (item.type) {
+        case 'object':
+          const subValues = schemaDefaultValues(item);
+          if (!isPlanObject(subValues)) {
+            values[key] = subValues;
+          }
+          break;
+        default:
+          if (item.default !== undefined) {
+            values[key] = item.default;
+          }
+          break;
+      }
+    });
+  }
 
-    return values;
+  return values;
 }
-
 
 // type Strings = (string | Strings)[];
 
@@ -137,17 +137,16 @@ export function schemaDefaultValues(schema: JSONSchema7): object {
 // }
 
 function ajvKeywordPrimaryKey(ajv: Ajv) {
-
-    ajv.addKeyword({
-        keyword: "primaryKey",
-        type: "object",
-        errors: false,
-        valid: true,
-        metaSchema: {
-            type: 'string',
-            default: 'id',
-        },
-    })
+  ajv.addKeyword({
+    keyword: 'primaryKey',
+    type: 'object',
+    errors: false,
+    valid: true,
+    metaSchema: {
+      type: 'string',
+      default: 'id',
+    },
+  });
 }
 
 // function ajvKeywordReadOnly(ajv: Ajv) {
