@@ -11,12 +11,10 @@ import {
   IValueWillChange,
   observe,
   values,
-} from 'mobx';
-import {
   IArrayWillChange,
   IArrayWillSplice,
   IInterceptor,
-} from 'mobx/src/internal';
+} from 'mobx';
 
 type IDisposer = () => void;
 
