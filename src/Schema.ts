@@ -21,7 +21,7 @@ export default class Schema<T extends object = object> {
   private ajv: Ajv;
 
   constructor(schema: Ajv, schemaName: string);
-  constructor(schema: Partial<BaseRootSchema>);
+  constructor(schema?: Partial<BaseRootSchema>);
   constructor(
     schema: Ajv | Partial<BaseRootSchema> = DEFAULT_SCHEMA,
     private schemaName: string = guid()
