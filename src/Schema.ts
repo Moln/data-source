@@ -31,6 +31,7 @@ export default class Schema<T extends object = object> {
       ajv = schema;
     } else {
       ajv = new Ajv({
+        strict: false,
         useDefaults: true,
         coerceTypes: true,
       });
