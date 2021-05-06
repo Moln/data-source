@@ -4,6 +4,7 @@ import Query from './Query';
 import RestProvider from './data-providers/RestProvider';
 import ArrayProvider from './data-providers/ArrayProvider';
 import OfflineServerProvider from './data-providers/OfflineServerProvider';
+import Resources from './Resources';
 
 export * from './interfaces';
 export * from './DataSource';
@@ -18,4 +19,5 @@ export {
   ArrayProvider,
   OfflineServerProvider,
   Query,
+  Resources
 };

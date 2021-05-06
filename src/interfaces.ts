@@ -112,8 +112,8 @@ export interface DataSourceGroupItem<T> {
   skipItemSorting?: boolean;
 }
 
-export interface IDataSource<T extends object = object> {
-  readonly dataProvider: DataProvider<T>;
+export interface IDataSource<T extends Record<string, any> = Record<string, any>> {
+  readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
   page: number;
   pageSize: number;
@@ -222,14 +222,15 @@ export interface DataSourceQueue<T> {
   removed: IModelT<T>[];
 }
 
-export interface DataProvider<T extends object = object> {
+export interface IDataProvider<T extends Record<string, any> = Record<string, any>> {
   readonly schema: Schema<T>;
 
   createDataSource(options?: OptionsArg<T>): IDataSource<T>;
   fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>>;
 
-  get(primary: T[keyof T]): Promise<T | void>;
+  get(primary: string | number): Promise<T | void>;
   create(model: Partial<T>): Promise<T>;
   update(primary: T[keyof T], model: Partial<T>): Promise<T>;
-  remove(model: Partial<T>): Promise<void>;
+  remove(model: Partial<T> | T[keyof T]): Promise<void>;
+  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2>;
 }

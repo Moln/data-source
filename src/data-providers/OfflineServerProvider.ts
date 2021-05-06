@@ -1,19 +1,19 @@
 import {
   ArrayProvider,
-  DataProvider,
+  IDataProvider,
   DataSource,
   FetchParams,
   OptionsArg,
   ResponseCollection,
 } from '../index';
 
-export default class OfflineServerProvider<T extends object = object>
-  implements DataProvider<T> {
+export default class OfflineServerProvider<T extends Record<string, any> = Record<string, any>>
+  implements IDataProvider<T> {
   private data: ArrayProvider<T> | null = null;
 
   readonly schema = this.serverProvider.schema;
 
-  constructor(private serverProvider: DataProvider<T>) {}
+  constructor(private serverProvider: IDataProvider<T>) {}
 
   createDataSource(options?: OptionsArg<T>): DataSource<T> {
     return new DataSource<T>(this, this.schema, options);
@@ -35,7 +35,7 @@ export default class OfflineServerProvider<T extends object = object>
     return result;
   }
 
-  async get(primary: T[keyof T]): Promise<T | void> {
+  async get(primary: string | number): Promise<T | void> {
     if (!this.data) {
       return this.serverProvider.get(primary);
     }
@@ -52,5 +52,9 @@ export default class OfflineServerProvider<T extends object = object>
     const result = await this.serverProvider.update(primary, model);
     this.data = null;
     return result;
+  }
+
+  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2> {
+    return this.serverProvider.sub<T2>(id, resource);
   }
 }

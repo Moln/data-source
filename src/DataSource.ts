@@ -1,5 +1,5 @@
 import {
-  DataProvider,
+  IDataProvider,
   DataSourceFilterItem,
   DataSourceFilters,
   IDataSource,
@@ -40,7 +40,7 @@ interface Changes<T> {
   updated: IModelT<T>[];
 }
 
-export class DataSource<T extends object = object> implements IDataSource<T> {
+export class DataSource<T extends Record<string, any> = Record<string, any>> implements IDataSource<T> {
   static defaultPageSize = 20;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;
@@ -61,7 +61,7 @@ export class DataSource<T extends object = object> implements IDataSource<T> {
   private originData: T[] = [];
 
   constructor(
-    public readonly dataProvider: DataProvider<T>,
+    public readonly dataProvider: IDataProvider<T>,
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
     options: OptionsArg<T> = {}
   ) {

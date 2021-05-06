@@ -1,5 +1,5 @@
 import {
-  DataProvider,
+  IDataProvider,
   FetchParams,
   OptionsArg,
   ResponseCollection,
@@ -16,8 +16,8 @@ import Schema from '../Schema';
 //     );
 // }
 
-export default class ArrayProvider<T extends object = object>
-  implements DataProvider<T> {
+export default class ArrayProvider<T extends Record<string, any> = Record<string, any>>
+  implements IDataProvider<T> {
   constructor(
     private data: T[],
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
@@ -31,7 +31,7 @@ export default class ArrayProvider<T extends object = object>
     return this.schema.primary as keyof T;
   }
 
-  get(primary: T[keyof T]): Promise<T | void> {
+  get(primary: string | number): Promise<T | void> {
     const row = this.data.find(row => row[this.primary] === primary);
     return Promise.resolve(row);
   }
@@ -82,5 +82,12 @@ export default class ArrayProvider<T extends object = object>
       data: this.data.slice(start, start + pageSize),
       total: this.data.length,
     });
+  }
+
+  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2> {
+    const row = this.data.find(row => row[this.primary] === id);
+    const data = (row && row[resource]) || [];
+
+    return new ArrayProvider(data, new Schema<T2>(this.schema.ajv, resource));
   }
 }
