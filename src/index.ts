@@ -19,5 +19,5 @@ export {
   ArrayProvider,
   OfflineServerProvider,
   Query,
-  Resources
+  Resources,
 };

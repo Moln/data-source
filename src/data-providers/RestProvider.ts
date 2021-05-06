@@ -52,8 +52,9 @@ export function normalizeRootFilterParams<T extends object>(
   };
 }
 
-export default class RestProvider<T extends Record<string, any> = Record<string, any>>
-  implements IDataProvider<T> {
+export default class RestProvider<
+  T extends Record<string, any> = Record<string, any>
+> implements IDataProvider<T> {
   constructor(
     protected readonly url: string,
     protected readonly http: AxiosInstance = axios,
@@ -112,15 +113,12 @@ export default class RestProvider<T extends Record<string, any> = Record<string,
   }
 
   async remove(model: Partial<T> | T[keyof T]): Promise<void> {
-
     if (typeof model === 'object') {
       await this.http.delete<T>(
-          `${this.url}/${(model as T)[this.schema.primary]}`
+        `${this.url}/${(model as T)[this.schema.primary]}`
       );
     } else {
-      await this.http.delete<T>(
-          `${this.url}/${model}`
-      );
+      await this.http.delete<T>(`${this.url}/${model}`);
     }
 
     return;
@@ -148,7 +146,15 @@ export default class RestProvider<T extends Record<string, any> = Record<string,
     return response.data;
   }
 
-  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2> {
-    return new RestProvider<T2>(`${this.url}/${id}/${resource}`, this.http, new Schema(), this.normalizeParams as any)
+  sub<T2 extends Record<string, any> = Record<string, any>>(
+    id: string | number,
+    resource: string
+  ): IDataProvider<T2> {
+    return new RestProvider<T2>(
+      `${this.url}/${id}/${resource}`,
+      this.http,
+      new Schema(),
+      this.normalizeParams as any
+    );
   }
 }

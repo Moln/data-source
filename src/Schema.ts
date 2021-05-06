@@ -13,7 +13,9 @@ export const DEFAULT_SCHEMA: BaseRootSchema = {
   primaryKey: 'id',
 };
 
-export default class Schema<T extends Record<string, any> = Record<string, any>> {
+export default class Schema<
+  T extends Record<string, any> = Record<string, any>
+> {
   public readonly validate: AnyValidateFunction<T>;
 
   public readonly schema: BaseRootSchema;

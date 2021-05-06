@@ -7,8 +7,9 @@ import {
   ResponseCollection,
 } from '../index';
 
-export default class OfflineServerProvider<T extends Record<string, any> = Record<string, any>>
-  implements IDataProvider<T> {
+export default class OfflineServerProvider<
+  T extends Record<string, any> = Record<string, any>
+> implements IDataProvider<T> {
   private data: ArrayProvider<T> | null = null;
 
   readonly schema = this.serverProvider.schema;
@@ -54,7 +55,10 @@ export default class OfflineServerProvider<T extends Record<string, any> = Recor
     return result;
   }
 
-  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2> {
+  sub<T2 extends Record<string, any> = Record<string, any>>(
+    id: string | number,
+    resource: string
+  ): IDataProvider<T2> {
     return this.serverProvider.sub<T2>(id, resource);
   }
 }

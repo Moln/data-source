@@ -16,8 +16,9 @@ import Schema from '../Schema';
 //     );
 // }
 
-export default class ArrayProvider<T extends Record<string, any> = Record<string, any>>
-  implements IDataProvider<T> {
+export default class ArrayProvider<
+  T extends Record<string, any> = Record<string, any>
+> implements IDataProvider<T> {
   constructor(
     private data: T[],
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
@@ -84,7 +85,10 @@ export default class ArrayProvider<T extends Record<string, any> = Record<string
     });
   }
 
-  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2> {
+  sub<T2 extends Record<string, any> = Record<string, any>>(
+    id: string | number,
+    resource: string
+  ): IDataProvider<T2> {
     const row = this.data.find(row => row[this.primary] === id);
     const data = (row && row[resource]) || [];
 

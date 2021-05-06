@@ -40,7 +40,8 @@ interface Changes<T> {
   updated: IModelT<T>[];
 }
 
-export class DataSource<T extends Record<string, any> = Record<string, any>> implements IDataSource<T> {
+export class DataSource<T extends Record<string, any> = Record<string, any>>
+  implements IDataSource<T> {
   static defaultPageSize = 20;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;

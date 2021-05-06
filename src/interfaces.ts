@@ -112,7 +112,9 @@ export interface DataSourceGroupItem<T> {
   skipItemSorting?: boolean;
 }
 
-export interface IDataSource<T extends Record<string, any> = Record<string, any>> {
+export interface IDataSource<
+  T extends Record<string, any> = Record<string, any>
+> {
   readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
   page: number;
@@ -222,7 +224,9 @@ export interface DataSourceQueue<T> {
   removed: IModelT<T>[];
 }
 
-export interface IDataProvider<T extends Record<string, any> = Record<string, any>> {
+export interface IDataProvider<
+  T extends Record<string, any> = Record<string, any>
+> {
   readonly schema: Schema<T>;
 
   createDataSource(options?: OptionsArg<T>): IDataSource<T>;
@@ -232,5 +236,8 @@ export interface IDataProvider<T extends Record<string, any> = Record<string, an
   create(model: Partial<T>): Promise<T>;
   update(primary: T[keyof T], model: Partial<T>): Promise<T>;
   remove(model: Partial<T> | T[keyof T]): Promise<void>;
-  sub<T2 extends Record<string, any> = Record<string, any>>(id: string | number, resource: string): IDataProvider<T2>;
+  sub<T2 extends Record<string, any> = Record<string, any>>(
+    id: string | number,
+    resource: string
+  ): IDataProvider<T2>;
 }
