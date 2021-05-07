@@ -153,7 +153,7 @@ export interface IDataSource<
 
   cancelChanges(model?: IModel<T>): void;
 
-  toJS(): T[];
+  toJS(uuid?: boolean): T[];
 
   removeFilter(field: string, operator?: OperatorKeys): void;
 
