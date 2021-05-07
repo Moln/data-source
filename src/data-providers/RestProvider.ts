@@ -150,10 +150,18 @@ export default class RestProvider<
     id: string | number,
     resource: string
   ): IDataProvider<T2> {
+
+    let schema: Schema<T2>;
+    if (this.schema.ajv.getSchema(resource)) {
+      schema = new Schema<T2>(this.schema.ajv, resource);
+    } else {
+      schema = new Schema<T2>();
+    }
+
     return new RestProvider<T2>(
       `${this.url}/${id}/${resource}`,
       this.http,
-      new Schema(),
+      schema,
       this.normalizeParams as any
     );
   }
