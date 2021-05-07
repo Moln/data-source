@@ -376,7 +376,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
   private parse = (obj: T): IModelT<T> => {
     if (obj instanceof Model) {
-      return obj;
+      return obj as any;
     }
 
     const m = createModel<T>(obj, this.schema);

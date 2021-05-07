@@ -154,14 +154,20 @@ export interface IDataSource<
   cancelChanges(model?: IModel<T>): void;
 
   toJS(): T[];
+
+  removeFilter(field: string, operator?: OperatorKeys): void;
+
+  addFilter(filter: DataSourceFilterItem<T>): void;
+
+  fetchInit(): Promise<IModelT<T>[]>;
+
+  primary: keyof T & string;
 }
 
 export type FetchParams<T extends object> = Partial<
   Pick<IDataSource<T>, 'filter' | 'sort' | 'page' | 'pageSize'>
 >;
 
-export interface PaginationDataSource<T extends object = object>
-  extends IDataSource<T> {}
 
 export interface ResponseCollection<T extends object = { [k in string]: any }> {
   data: T[];
@@ -179,9 +185,7 @@ export interface OptionsArg<T extends object = object> {
   autoSync?: boolean;
 }
 
-export interface Primary {
-  [key: string]: string | number;
-}
+
 
 export interface IModel<T> {
   [x: string]: any;
@@ -217,12 +221,6 @@ export interface IModel<T> {
 }
 
 export type IModelT<T> = IModel<T> & T;
-
-export interface DataSourceQueue<T> {
-  added: IModelT<T>[];
-  updated: IModelT<T>[];
-  removed: IModelT<T>[];
-}
 
 export interface IDataProvider<
   T extends Record<string, any> = Record<string, any>
