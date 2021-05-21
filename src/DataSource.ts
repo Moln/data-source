@@ -135,6 +135,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
       return c;
     });
+
+    initData()
     observe(this, 'data', initData);
     // const data = (this.data as IObservableArray<IModelT<T>>);
 
