@@ -19,6 +19,8 @@ describe('DataSource', () => {
     ds.add({ name: 'test' });
     ds.insert(0, { name: 'test0' });
 
+    expect(ds.hasChanges()).toBeTruthy();
+
     ds.cancelChanges();
 
     expect(ds.data.length).toBe(0);

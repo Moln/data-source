@@ -187,6 +187,11 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     return this.schema.primary;
   }
 
+  hasChanges() {
+    const {updated, added, removed} = this.changes
+    return Boolean(updated.length || added.length || removed.length);
+  }
+
   cancelChanges(model?: IModelT<T>) {
     const splice = (key: keyof Changes<T>) => {
       const index = this.changes[key].findIndex(m => m === model);

@@ -151,6 +151,8 @@ export interface IDataSource<
 
   sync(): Promise<void>;
 
+  hasChanges(): boolean;
+
   cancelChanges(model?: IModel<T>): void;
 
   toJS(uuid?: boolean): T[];
