@@ -9,6 +9,7 @@ const testSchema: BaseRootSchema = Object.assign(
       },
       name: {
         type: 'string',
+        default: 'test',
       },
       role: {
         type: 'string',
@@ -96,5 +97,13 @@ describe('DataSource/Model', () => {
     obj1.name = 'Test123';
 
     expect(obj1.dirtyFields()).toEqual({ name: 'Test123' });
+  });
+
+
+  it('should schema default values', function() {
+    const m = createModel({}, new Schema(testSchema));
+
+    expect(m.name).toBe('test');
+    expect(m.isDirty()).toBeFalsy();
   });
 });

@@ -144,7 +144,7 @@ export interface IDataSource<
 
   remove(model: IModel<T>): number;
 
-  get(id: T[KeyOfString<T>]): IModelT<T> | undefined;
+  get(id: string | number): IModelT<T> | undefined;
 
   // loading: boolean;
   fetch(forceRequest?: boolean): Promise<IModelT<T>[]>;
@@ -219,8 +219,10 @@ export interface IModel<T> {
 
   resetProperty(key: keyof T): this;
 
-  observe(listener: Parameters<typeof deepObserve>[1]): void;
+  observe(listener: Parameters<typeof deepObserve>[1]): IDisposer;
 }
+
+export type IDisposer = () => void;
 
 export type IModelT<T> = IModel<T> & T;
 

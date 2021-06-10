@@ -10,6 +10,7 @@ import {
   SortOptions,
   SortOptions1,
   SortOptions2,
+  IDisposer,
 } from './interfaces';
 import {
   action,
@@ -131,6 +132,15 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
         throw new Error('Type error');
       }
 
+      this.changes = {
+        added: [],
+        removed: [],
+        updated: [],
+      };
+
+      // this.bindModels.forEach((disposer) => disposer())
+      // this.bindModels.clear();
+
       c.newValue = c.newValue.map(this.parse);
 
       return c;
@@ -138,28 +148,6 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
     initData()
     observe(this, 'data', initData);
-    // const data = (this.data as IObservableArray<IModelT<T>>);
-
-    // data.observe((change) => {
-    //     if (change.type == 'update') {
-    //         return ;
-    //     }
-    //     change.added.forEach((item) => {
-    //         observe(item, (change) => {
-    //             this.changes.updates.push(item);
-    //         })
-    //     });
-    //
-    //     this.changes.splices.push(change as IArraySplice<IModel<T>>);
-    // })
-
-    // intercept(data, (c) => {
-    //     if (c.type === "update") {
-    //         throw new Error("Deny update array items.");
-    //     }
-    //
-    //     return c;
-    // });
   }
 
   insert(index: number, obj: T | object): IModelT<T> {
@@ -340,7 +328,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     }
   }
 
-  get(id: T[keyof T]): IModelT<T> | undefined {
+  get(id: string | number): IModelT<T> | undefined {
     return this.data.find(item => item[this.primary] === id);
   }
 
@@ -375,11 +363,15 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     }
 
     this.originData = this.toJS();
+
+    // changes.removed.forEach(item => this.bindModels.delete(item))
     changes.added = [];
     changes.updated = [];
     changes.removed = [];
     return;
   }
+
+  // private bindModels: Map<IModelT<T>, IDisposer> = new Map();
 
   private parse = (obj: T): IModelT<T> => {
     if (obj instanceof Model) {
@@ -400,6 +392,25 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
         this.changes.updated.splice(idx, 1);
       }
     });
+
+    // const m = obj instanceof Model ? obj : createModel<T>(obj, this.schema);
+    //
+    // if (! this.bindModels.has(m)) {
+    //   const disposer = m.observe(() => {
+    //     if (this.loadings.syncing) return;
+    //
+    //     const idx = this.changes.updated.indexOf(m);
+    //     if (m.isDirty()) {
+    //       if (idx === -1) {
+    //         this.changes.updated.push(m);
+    //       }
+    //     } else {
+    //       this.changes.updated.splice(idx, 1);
+    //     }
+    //   });
+    //
+    //   this.bindModels.set(m, disposer);
+    // }
 
     return m;
   };
