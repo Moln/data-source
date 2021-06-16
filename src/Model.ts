@@ -122,6 +122,9 @@ export default class Model<T extends object> implements IModel<T> {
       if ('name' in change) {
         path = path.concat([change.name as string]);
       }
+      if (change.type === 'add' && change.name === schema.primary) {
+        return change;
+      }
       if (schema.isReadOnly(path)) {
         return null;
       }
@@ -235,7 +238,7 @@ export default class Model<T extends object> implements IModel<T> {
   }
 
   isNew(): boolean {
-    return !(this as any)[this[PROPERTIES].schema.primary];
+    return !this.get(this[PROPERTIES].schema.primary);
   }
 
   toJS(uuid?: boolean) {

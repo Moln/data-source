@@ -6,6 +6,7 @@ const testSchema: BaseRootSchema = Object.assign(
     properties: {
       id: {
         type: 'integer',
+        readOnly: true,
       },
       name: {
         type: 'string',
@@ -23,11 +24,10 @@ const testSchema: BaseRootSchema = Object.assign(
 describe('DataSource/Model', () => {
   it('starts at 0', () => {
     const m = createModel({
-      id: 123,
       name: 'Test',
       isDirty: 222,
       sub: { a: [{ a2: 1 }], b: 2 },
-    });
+    }, new Schema(testSchema));
 
     // m.observe(change => console.log(change))
 
@@ -40,8 +40,14 @@ describe('DataSource/Model', () => {
 
     expect(m.isDirty()).toBeTruthy();
     expect(m.get('isDirty')).toBe(333);
-    expect(m.isNew()).toBeFalsy();
+    expect(m.isNew()).toBeTruthy();
     expect(m.name).toBe('test2');
+
+    m.set('id', 1)
+    m.submit()
+    expect(m.isNew()).toBeFalsy();
+    expect(m.isDirty()).toBeFalsy();
+
   });
 
   it('should model success', function() {
