@@ -240,7 +240,10 @@ export default class Model<T extends object> implements IModel<T> {
 
   toJS(uuid?: boolean) {
     const obj: T & { __uuid?: string } = toJS(this[PROPERTIES].obModel);
-    obj.__uuid = this.getUuid();
+
+    if (uuid) {
+      obj.__uuid = this.getUuid();
+    }
 
     return obj;
   }
