@@ -132,11 +132,9 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
         throw new Error('Type error');
       }
 
-      this.changes = {
-        added: [],
-        removed: [],
-        updated: [],
-      };
+      changes.added = [];
+      changes.updated = [];
+      changes.removed = [];
 
       // this.bindModels.forEach((disposer) => disposer())
       // this.bindModels.clear();
