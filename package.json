@@ -1,5 +1,5 @@
 {
-  "version": "0.2.11",
+  "version": "0.2.13",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -44,6 +44,16 @@
       "limit": "10 KB"
     }
   ],
+  "peerDependencies": {
+    "ajv": "^8.0.5",
+    "axios": "*",
+    "mobx": "^6.1.8"
+  },
+  "dependencies": {
+    "ajv": "^8.0.5",
+    "axios": "*",
+    "mobx": "^6.1.8"
+  },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.10.1",
     "axios-mock-adapter": "^1.19.0",
@@ -52,10 +62,5 @@
     "tsdx": "^0.14.1",
     "tslib": "^2.1.0",
     "typescript": "^4.2.3"
-  },
-  "dependencies": {
-    "mobx": "^6.1.8",
-    "ajv": "^8.0.5",
-    "axios": "*"
   }
 }
