@@ -5,6 +5,7 @@ import RestProvider from './data-providers/RestProvider';
 import ArrayProvider from './data-providers/ArrayProvider';
 import OfflineServerProvider from './data-providers/OfflineServerProvider';
 import Resources from './Resources';
+import { guid } from './utils';
 
 export * from './interfaces';
 export * from './DataSource';
@@ -20,4 +21,5 @@ export {
   OfflineServerProvider,
   Query,
   Resources,
+  guid,
 };

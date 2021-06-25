@@ -49,8 +49,10 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
 
-  page = 1;
-  pageSize = DataSource.defaultPageSize;
+  paginator: IDataSource['paginator'] = {
+    page: 1,
+    pageSize: DataSource.defaultPageSize,
+  }
   total = 0;
   filter: DataSourceFilters<T> | null = null;
   sort: (SortOptions1 | SortOptions2<T>)[] = [];
@@ -67,22 +69,18 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
     options: OptionsArg<T> = {}
   ) {
-    if (options.pageSize) {
-      this.pageSize = options.pageSize;
-    }
-    if (options.page) {
-      this.page = options.page;
+    const paginator = options.paginator
+    if (paginator !== undefined) {
+      this.paginator = paginator && { page: 1, pageSize: DataSource.defaultPageSize, ...paginator };
     }
 
     makeObservable(this, {
       data: observable,
-      page: observable,
-      pageSize: observable,
+      paginator: observable,
       total: observable,
       filter: observable,
       sort: observable,
       loadings: observable,
-
       loading: computed,
 
       insert: action,
@@ -146,6 +144,33 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
     initData()
     observe(this, 'data', initData);
+  }
+
+  get page() {
+    const paginator = this.paginator as (false | {page: number})
+    return paginator ? paginator.page : undefined
+  }
+
+  get pageSize() {
+    const paginator = this.paginator as (false | {pageSize: number})
+    return paginator ? paginator.pageSize : undefined
+  }
+
+  set page(value: number | undefined) {
+    (this.paginator as {page: number}).page = value as number
+  }
+
+  set pageSize(value: number | undefined) {
+    (this.paginator as {pageSize: number}).pageSize = value as number
+  }
+
+  get cursor() {
+    const paginator = this.paginator as (false | {cursor: number})
+    return paginator ? paginator.cursor : undefined
+  }
+
+  set cursor(value: string | number | undefined) {
+    (this.paginator as any).cursor = value
   }
 
   insert(index: number, obj: T | object): IModelT<T> {
@@ -380,6 +405,10 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
     m.observe(change => {
       if (this.loadings.syncing) return;
+
+      if (m.isNew()) {
+        return ;
+      }
 
       const idx = this.changes.updated.indexOf(m);
       if (m.isDirty()) {

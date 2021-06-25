@@ -117,8 +117,11 @@ export interface IDataSource<
 > {
   readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
-  page: number;
-  pageSize: number;
+
+  paginator: false | {page: number, pageSize: number} | {cursor?: string | number, pageSize: number}
+  page?: number;
+  cursor?: string | number;
+  pageSize?: number;
   total: number;
   data: IModelT<T>[];
   filter: DataSourceFilters<T> | null;
@@ -167,8 +170,8 @@ export interface IDataSource<
 }
 
 export type FetchParams<T extends object> = Partial<
-  Pick<IDataSource<T>, 'filter' | 'sort' | 'page' | 'pageSize'>
->;
+  Pick<IDataSource<T>, 'filter' | 'sort' | 'page' | 'pageSize' | 'cursor'>
+> & {cursor?: string | number};
 
 
 export interface ResponseCollection<T extends object = { [k in string]: any }> {
@@ -182,8 +185,7 @@ export interface ResponseEntity<T extends object = object> {
 
 export interface OptionsArg<T extends object = object> {
   parse?: (obj: object) => T;
-  pageSize?: number;
-  page?: number;
+  paginator?: false | {page?: number, pageSize?: number} | {cursor?: string | number, pageSize?: number}
   autoSync?: boolean;
 }
 

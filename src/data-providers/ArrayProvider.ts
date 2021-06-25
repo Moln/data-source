@@ -4,7 +4,7 @@ import {
   OptionsArg,
   ResponseCollection,
 } from '../interfaces';
-import { DataSource, DEFAULT_SCHEMA } from '../';
+import { DataSource, DEFAULT_SCHEMA, guid } from '../';
 import Schema from '../Schema';
 
 // export function factory<T extends object = object>(url: string): DataSource<T>;
@@ -22,7 +22,13 @@ export default class ArrayProvider<
   constructor(
     private data: T[],
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
-  ) {}
+  ) {
+    data.forEach((item) => {
+      if (!item[schema.primary]) {
+        item[schema.primary] = guid() as any
+      }
+    })
+  }
 
   createDataSource(options?: OptionsArg<T>): DataSource<T> {
     return new DataSource<T>(this, this.schema, options);
@@ -38,6 +44,9 @@ export default class ArrayProvider<
   }
 
   create(model: Partial<T>): Promise<T> {
+    if (! model[this.primary]) {
+      model[this.primary] = guid() as any;
+    }
     this.data.push(model as T);
     return Promise.resolve(model as T);
   }

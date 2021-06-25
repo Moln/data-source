@@ -1,9 +1,13 @@
 import { ArrayProvider, Model } from '../src';
+import { observable, observe } from "mobx";
+import { deepObserve } from "../src/mobx/utils";
 
 describe('DataSource', () => {
   it('DataSource add model', () => {
     const ds = new ArrayProvider<object>([]).createDataSource();
     const m = ds.add({ name: 'test' });
+
+    expect((ds as any).changes.updated.length).toBe(0);
     expect(ds.data.length).toBe(1);
     expect(m.isNew()).toBeTruthy();
 

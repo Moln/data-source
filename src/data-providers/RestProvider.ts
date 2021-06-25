@@ -34,6 +34,7 @@ export function normalizeJsonApiParams<T extends object>(
     filter,
     sort: params?.sort,
     page: params?.page,
+    cursor: params?.cursor,
     page_size: params?.pageSize,
   };
 }
@@ -65,6 +66,7 @@ export default class RestProvider<
       filter: params?.filter,
       sort: params?.sort,
       page: params?.page,
+      cursor: params?.cursor,
       page_size: params?.pageSize,
     })
   ) {}
@@ -122,28 +124,6 @@ export default class RestProvider<
     }
 
     return;
-  }
-
-  async fetchByDataSource(
-    dataSource: IDataSource<T>
-  ): Promise<ResponseCollection<T>> {
-    const filter: { [key: string]: string } = {};
-    if (dataSource.filter && Array.isArray(dataSource.filter.filters)) {
-      // dataSource.filters.filters.forEach((item) => {
-      //     filter[item.field] = item.value;
-      // });
-    }
-
-    const response = await this.http.get<ResponseCollection<T>>(this.url, {
-      params: {
-        ...filter,
-        sort: dataSource.sort,
-        page: dataSource.page,
-        page_size: dataSource.pageSize,
-      },
-    });
-
-    return response.data;
   }
 
   sub<T2 extends Record<string, any> = Record<string, any>>(
