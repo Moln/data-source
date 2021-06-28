@@ -6,6 +6,7 @@ import {
 } from '../interfaces';
 import { DataSource, DEFAULT_SCHEMA, guid } from '../';
 import Schema from '../Schema';
+import Query from "../Query";
 
 // export function factory<T extends object = object>(url: string): DataSource<T>;
 // export function factory<T extends object = object>(data: T[] | string, schema: BaseRootSchema = DEFAULT_SCHEMA, options: OptionsArg<T> = {}) {
@@ -20,7 +21,7 @@ export default class ArrayProvider<
   T extends Record<string, any> = Record<string, any>
 > implements IDataProvider<T> {
   constructor(
-    private data: T[],
+    public readonly data: T[],
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
   ) {
     data.forEach((item) => {
@@ -77,19 +78,29 @@ export default class ArrayProvider<
   }
 
   fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> {
-    if (!params) {
+
+    const page = params?.page;
+    const pageSize = params?.pageSize;
+
+    let data = new Query(this.data);
+
+    if (params?.sort) {
+      data = data.order(params.sort)
+    }
+    if (params?.filter) {
+      data = data.filter(params.filter)
+    }
+
+    if (!page || !pageSize) {
       return Promise.resolve({
-        data: this.data,
+        data: data.toArray(),
         total: this.data.length,
       });
     }
 
-    const page = params?.page || 1;
-    const pageSize = params?.pageSize || 0;
-
     const start = (page - 1) * pageSize;
     return Promise.resolve({
-      data: this.data.slice(start, start + pageSize),
+      data: data.range(start, pageSize).toArray(),
       total: this.data.length,
     });
   }
