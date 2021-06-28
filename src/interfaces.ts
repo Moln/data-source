@@ -145,7 +145,7 @@ export interface IDataSource<
 
   insert(index: number, obj: T | object): IModelT<T>;
 
-  remove(model: IModel<T>): number;
+  remove(model: string | number | IModel<T>): number;
 
   get(id: string | number): IModelT<T> | undefined;
 

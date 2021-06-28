@@ -284,13 +284,21 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     return this.lastFetchProcess;
   }
 
-  remove(model: IModelT<T>): number {
-    if (model.isNew()) {
-      this.cancelChanges(model);
-      return -1;
+  remove(model: string | number | IModelT<T>): number {
+    if (typeof model !== 'object') {
+      const item = this.get(model)
+      if (! item) {
+        return -1
+      }
+      model = item;
     }
 
     const i = this.data.findIndex(row => row === model);
+    if (model.isNew()) {
+      this.cancelChanges(model);
+      return i;
+    }
+
     if (i !== -1) {
       this.data.splice(i, 1);
     }
