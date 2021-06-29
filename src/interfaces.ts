@@ -184,12 +184,10 @@ export interface ResponseEntity<T extends object = object> {
 }
 
 export interface OptionsArg<T extends object = object> {
-  parse?: (obj: object) => T;
+  modelFactory?: (obj: T, schema?: Schema<T>) => IModelT<T>;
   paginator?: false | {page?: number, pageSize?: number} | {cursor?: string | number, pageSize?: number}
   autoSync?: boolean;
 }
-
-
 
 export interface IModel<T> {
   [x: string]: any;

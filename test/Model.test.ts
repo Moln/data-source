@@ -1,5 +1,5 @@
-import { extendObservable, observable } from 'mobx';
-import { BaseRootSchema, createModel, DEFAULT_SCHEMA, Schema } from '../src';
+import { extendObservable, intercept, observable } from 'mobx';
+import { BaseRootSchema, createModel, DEFAULT_SCHEMA, Model, PROPERTIES, Schema } from '../src';
 
 const testSchema: BaseRootSchema = Object.assign(
   {
@@ -111,5 +111,35 @@ describe('DataSource/Model', () => {
 
     expect(m.name).toBe('test');
     expect(m.isDirty()).toBeFalsy();
+  });
+
+  it('should extends setter', function () {
+    const noop = () => {};
+    class DateModel<T extends Record<any, any> = Record<any, any>> extends Model<T> {
+      get date() {
+        return new Date(this.get('time'))
+      }
+      set date(value: Date) {
+        this.set('time', value.toISOString())
+      }
+
+      test = noop
+    }
+
+    const m = new DateModel({ time: '2021/01/02 00:00:00' }) as Record<any, any>
+    // m.date = new Date('2021/01/01 00:00:00');
+    const d1 = new Date('2021/01/01 00:00:00');
+
+    m.set('date2', d1);
+    expect(m.date2).toBe(d1)
+
+    m.set('date', new Date('2021/01/01 00:00:00'));
+    expect(m.time).toBe('2020-12-31T16:00:00.000Z')
+    expect(m.date.toISOString()).toBe('2020-12-31T16:00:00.000Z')
+
+    m.set('test', 'foo');
+    expect(m.test).toBe(noop)
+    expect(m.get('test')).toBe('foo')
+
   });
 });

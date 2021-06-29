@@ -10,7 +10,6 @@ import {
   SortOptions,
   SortOptions1,
   SortOptions2,
-  IDisposer,
 } from './interfaces';
 import {
   action,
@@ -64,6 +63,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   };
   private originData: T[] = [];
 
+  private modelFactory: Exclude<OptionsArg<T>['modelFactory'], undefined> = createModel
+
   constructor(
     public readonly dataProvider: IDataProvider<T>,
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
@@ -72,6 +73,9 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     const paginator = options.paginator
     if (paginator !== undefined) {
       this.paginator = paginator && { page: 1, pageSize: DataSource.defaultPageSize, ...paginator };
+    }
+    if (options.modelFactory) {
+      this.modelFactory = options.modelFactory
     }
 
     makeObservable(this, {
@@ -99,13 +103,13 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
     const changes = this.changes;
     const initData = () => {
-      intercept<IModelT<T>>(this.data as any, (change: any) => {
+      intercept(this.data, (change: any) => {
         if (this.loadings.syncing) return;
         if (change.type !== 'splice') {
           console.log('Invalid change', change);
           return;
         }
-        change.added = change.added.map((obj: IModelT<T>) => {
+        change.added = change.added.map((obj: T) => {
           const m = this.parse(obj);
           changes.added.push(m);
           return m;
@@ -409,7 +413,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       return obj as any;
     }
 
-    const m = createModel<T>(obj, this.schema);
+    const m = this.modelFactory(obj, this.schema);
 
     m.observe(change => {
       if (this.loadings.syncing) return;

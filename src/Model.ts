@@ -4,7 +4,7 @@ import { observable, runInAction, toJS } from 'mobx';
 import { guid } from './utils';
 import { deepObserve, deepIntercept } from './mobx/utils';
 
-const PROPERTIES = Symbol('dataSource.model');
+export const PROPERTIES = Symbol('dataSource.model');
 
 // export function schema<T>(schema: object): ClassDecorator {
 //     return (target: Function) => {
@@ -27,15 +27,15 @@ interface ModelProperties<T extends object> {
 }
 
 function defineProperty<T extends object>(
-  model: Model<T>,
-  obj: T,
+  model: IModel<T>,
+  mobxObj: T,
   key: keyof T | string
 ) {
   if (Model.prototype.hasOwnProperty(key)) {
     return;
   }
 
-  const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+  const descriptor = Object.getOwnPropertyDescriptor(mobxObj, key);
   const additionalDescriptor = descriptor
     ? { enumerable: descriptor.enumerable }
     : {};
@@ -44,12 +44,16 @@ function defineProperty<T extends object>(
     ...additionalDescriptor,
     configurable: true,
     get() {
-      return obj[key as keyof T];
+      return mobxObj[key as keyof T];
     },
     set(value: any) {
-      obj[key as keyof T] = value;
+      mobxObj[key as keyof T] = value;
     },
   });
+}
+
+function isSetter(obj: object, key: string): boolean {
+  return !!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), key)?.set
 }
 
 export default class Model<T extends object> implements IModel<T> {
@@ -172,18 +176,22 @@ export default class Model<T extends object> implements IModel<T> {
         return this;
       }
     } else {
+      if (isSetter(this, keys as string)) {
+        this[keys as keyof this] = value;
+        return this;
+      }
       keys = [keys as keyof T];
     }
 
     runInAction(() => {
       const model = this[PROPERTIES].obModel;
-      let _keys = keys as (keyof T)[];
-      if (_keys[0] in model) {
+      const _keys = keys as string[];
+      if (! (_keys[0] in this)) {
         defineProperty(this, model, _keys[0]);
       }
 
-      let target: any = model;
-      let lastKey = _keys.pop();
+      let target: Record<any, any> = model;
+      let lastKey = _keys.pop()!;
       _keys.forEach(key => {
         target = target[key];
       });

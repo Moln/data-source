@@ -49,4 +49,26 @@ describe('DataSource', () => {
     ds.remove(m);
     expect(ds.data.length).toBe(0);
   });
+
+
+  it('DataSource modelFactory', () => {
+    class DateModel extends Model<Record<any, any>> {
+      get date() {
+        return new Date(this.get('time'))
+      }
+      set date(value: Date) {
+        this.set('time', value.toISOString())
+      }
+      toJS(uuid?: boolean) {
+        return super.toJS(uuid);
+      }
+    }
+
+    const ds = new ArrayProvider<Record<any, any>>([]).createDataSource({modelFactory: (obj, schema) => new DateModel(obj, schema)});
+    const m = ds.add({ name: 'test' });
+
+    expect(m).toBeInstanceOf(DateModel)
+    // ds.remove(m);
+    // expect(ds.data.length).toBe(0);
+  });
 });
