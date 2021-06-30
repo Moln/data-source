@@ -178,20 +178,21 @@ export default class Model<T extends object> implements IModel<T> {
         return this;
       }
     } else {
-      if (isSetter(this, keys as string)) {
-        this[keys as keyof this] = value;
-        return this;
-      }
       keys = [keys as keyof T];
     }
 
-    runInAction(() => {
-      const model = this[PROPERTIES].obModel;
-      const _keys = keys as string[];
-      if (! (_keys[0] in this)) {
-        defineProperty(this, model, _keys[0]);
-      }
+    const model = this[PROPERTIES].obModel;
+    const _keys = keys as string[];
+    if (_keys.length === 1 && isSetter(this, _keys[0])) {
+      this[_keys[0] as keyof this] = value;
+      return this;
+    }
 
+    if (! (_keys[0] in this)) {
+      defineProperty(this, model, _keys[0]);
+    }
+
+    runInAction(() => {
       let target: Record<any, any> = model;
       let lastKey = _keys.pop()!;
       _keys.forEach(key => {
