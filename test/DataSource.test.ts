@@ -68,7 +68,23 @@ describe('DataSource', () => {
     const m = ds.add({ name: 'test' });
 
     expect(m).toBeInstanceOf(DateModel)
-    // ds.remove(m);
-    // expect(ds.data.length).toBe(0);
+  });
+
+  it('should auto sync', async function () {
+    const data = [
+      {id: 1, name: 'foo'},
+      {id: 2, name: 'bar'},
+      {id: 3, name: 'baz'},
+    ];
+    const dp = new ArrayProvider<Record<any, any>>(data);
+    const ds = dp.createDataSource({ autoSync: true });
+    await ds.fetch()
+    expect(ds.data.length).toBe(3)
+
+    const m = ds.add({name: 'test'});
+
+    expect(ds.data.length).toBe(4)
+    expect(dp.data.length).toBe(4)
+    expect(dp.data[3]).toMatchObject({name: 'test'})
   });
 });

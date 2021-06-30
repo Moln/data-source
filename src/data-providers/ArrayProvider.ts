@@ -7,6 +7,7 @@ import {
 import { DataSource, DEFAULT_SCHEMA, guid } from '../';
 import Schema from '../Schema';
 import Query from "../Query";
+import Model from "../Model";
 
 // export function factory<T extends object = object>(url: string): DataSource<T>;
 // export function factory<T extends object = object>(data: T[] | string, schema: BaseRootSchema = DEFAULT_SCHEMA, options: OptionsArg<T> = {}) {
@@ -45,6 +46,9 @@ export default class ArrayProvider<
   }
 
   create(model: Partial<T>): Promise<T> {
+    if (model instanceof Model) {
+      model = model.toJS()
+    }
     if (! model[this.primary]) {
       model[this.primary] = guid() as any;
     }

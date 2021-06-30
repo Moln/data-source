@@ -54,7 +54,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   }
   total = 0;
   filter: DataSourceFilters<T> | null = null;
-  sort: (SortOptions1 | SortOptions2<T>)[] = [];
+  sort: (SortOptions1 | SortOptions2<T>)[] | null = null;
 
   private changes: Changes<T> = {
     added: [],
@@ -64,6 +64,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   private originData: T[] = [];
 
   private modelFactory: Exclude<OptionsArg<T>['modelFactory'], undefined> = createModel
+
+  private autoSync: boolean = false;
 
   constructor(
     public readonly dataProvider: IDataProvider<T>,
@@ -77,6 +79,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
     if (options.modelFactory) {
       this.modelFactory = options.modelFactory
     }
+    this.autoSync = options.autoSync || false
 
     makeObservable(this, {
       data: observable,
@@ -123,6 +126,12 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
         }
         return change;
       });
+      observe(this.data, (change: any) => {
+        if (change.type !== 'splice') {
+          return;
+        }
+        this.autoSync && this.sync()
+      })
     };
 
     intercept(this, 'data', c => {
@@ -426,6 +435,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       if (m.isDirty()) {
         if (idx === -1) {
           this.changes.updated.push(m);
+
+          this.autoSync && this.sync()
         }
       } else {
         this.changes.updated.splice(idx, 1);

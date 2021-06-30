@@ -125,7 +125,7 @@ export interface IDataSource<
   total: number;
   data: IModelT<T>[];
   filter: DataSourceFilters<T> | null;
-  sort: (SortOptions1 | SortOptions2<T>)[];
+  sort: (SortOptions1 | SortOptions2<T>)[] | null;
   loading: boolean;
 
   setSort(
