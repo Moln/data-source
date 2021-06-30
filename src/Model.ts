@@ -68,7 +68,9 @@ export default class Model<T extends object> implements IModel<T> {
 
     const validate = schema.getSchema();
     if (validate && !validate(model)) {
-      console.warn('Error model value: ', validate, model);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Error model value: ', validate.errors, model);
+      }
       throw new Error('Error model value: ' + JSON.stringify(model));
     }
 
