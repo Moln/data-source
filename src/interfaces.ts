@@ -45,6 +45,7 @@ export type OperatorKeys =
   | 'lessthan'
   | 'less'
   | '<='
+  | 'lt'
   | 'lte'
   | 'islessthanorequalto'
   | 'lessthanequal'
@@ -62,13 +63,21 @@ export type OperatorKeys =
   | 'notsubstringof'
   | 'doesnotcontain'
   | 'isnull'
+  | 'isnotnull'
   | 'isempty'
   | 'isnotempty'
   | 'contains'
   | 'endswith'
   | 'startswith'
   | 'in'
-  | 'notlike';
+  | 'notlike'
+  | 'doesnotstartwith'
+  | 'doesnotendwith'
+  | 'matches'
+  | 'doesnotmatch'
+  | 'isnullorempty'
+  | 'isnotnullorempty'
+;
 
 export interface DataSourceFilterItem<T> {
   operator?: OperatorKeys;

@@ -9,6 +9,7 @@ import {
   FieldType,
   GroupItem,
   GroupItem2,
+  OperatorKeys,
   SortDir,
   SortOptions,
   SortOptions1,
@@ -16,7 +17,7 @@ import {
 } from './interfaces';
 import * as utils from './utils';
 import { expr, getter, isArray, isDate, isFunction, isNumber } from './utils';
-import { normalizeOperator, operators } from './operator';
+import { normalizeOperator, operators, quote } from './operator';
 
 const Comparer = {
   selector<T>(field: FieldType<T>): (data: T) => string {
@@ -393,11 +394,11 @@ function filterExpr<T>(expression: DataSourceFilters<T>) {
           '](' +
           exp +
           ', ' +
-          operators.quote(filter.value) +
+          quote(filter.value) +
           ')';
         operatorFunctions.push(operator);
       } else {
-        expressionStr = (operators as any)[(operator || 'eq').toLowerCase()](
+        expressionStr = operators[(operator || 'eq').toLowerCase() as OperatorKeys](
           exp,
           filter.value,
           filter.ignoreCase !== undefined ? filter.ignoreCase : true,

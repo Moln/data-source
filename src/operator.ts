@@ -32,13 +32,13 @@ export const OPERATOR_MAP = {
   isnull: 'isnull',
   isempty: 'isempty',
   isnotempty: 'isnotempty',
-};
+} as Record<OperatorKeys, OperatorKeys>;
 
 export function normalizeOperator<T>(expression: DataSourceFilters<T>) {
   expression.filters.forEach(filter => {
     if ('field' in filter) {
-      const operator = (filter.operator as OperatorKeys) || '==';
-      filter.operator = (OPERATOR_MAP as any)[operator] || operator;
+      const operator = filter.operator || '==';
+      filter.operator = OPERATOR_MAP[operator] || operator;
     } else {
       normalizeOperator<T>(filter);
     }
@@ -46,11 +46,16 @@ export function normalizeOperator<T>(expression: DataSourceFilters<T>) {
 }
 
 const dateRegExp = /^\/Date\((.*?)\)\/$/;
-function quote(str: any): string {
-  if (typeof str === 'string') {
-    str = str.replace(/[\r\n]+/g, '');
+
+export function quote(value: any): string {
+  if (value && value.getTime) {
+    return 'new Date(' + value.getTime() + ')';
   }
-  return JSON.stringify(str);
+
+  if (typeof value === 'string') {
+    value = value.replace(/[\r\n]+/g, '');
+  }
+  return JSON.stringify(value);
 }
 
 function textOp(impl: (a: string, b: string, ignore: boolean) => any) {
@@ -58,7 +63,7 @@ function textOp(impl: (a: string, b: string, ignore: boolean) => any) {
     a: string,
     b: string,
     ignore: boolean,
-    accentFoldingFiltering: string | string[]
+    accentFoldingFiltering?: string | string[]
   ) {
     b += '';
     if (ignore) {
@@ -149,18 +154,15 @@ function getMatchRegexp(pattern: string) {
   return rx + '$/';
 }
 
-export const operators = {
-  quote(value: any) {
-    if (value && value.getTime) {
-      return 'new Date(' + value.getTime() + ')';
-    }
-    return quote(value);
-  },
+type OperatorExprFn = (field: string, value: any, ignore: boolean, accentFoldingFiltering?: string | string[]) => string;
+
+export const operators: Record<OperatorKeys | string, OperatorExprFn> = {
+
   eq(
     a: any,
     b: any,
     ignore: boolean,
-    accentFoldingFiltering: string | string[]
+    accentFoldingFiltering?: string | string[]
   ) {
     return operator('==', a, b, ignore, accentFoldingFiltering);
   },
@@ -168,7 +170,7 @@ export const operators = {
     a: any,
     b: any,
     ignore: boolean,
-    accentFoldingFiltering: string | string[]
+    accentFoldingFiltering?: string | string[]
   ) {
     return operator('!=', a, b, ignore, accentFoldingFiltering);
   },
@@ -197,7 +199,7 @@ export const operators = {
   doesnotendwith: textOp(function(a, b) {
     const n = b ? b.length - 2 : 0;
     return a + '.indexOf(' + b + ', ' + a + '.length - ' + n + ') < 0';
-  }),
+  }) as any,
   contains: textOp(function(a, b) {
     return a + '.indexOf(' + b + ') >= 0';
   }),
@@ -212,6 +214,9 @@ export const operators = {
     b = b.substring(1, b.length - 1);
     return '!' + getMatchRegexp(b) + '.test(' + a + ')';
   }),
+  in: function(a: string, b: string[] | number[]) {
+    return JSON.stringify(b) + '.indexOf(' + a + ') >= 0';
+  },
   isempty(a: string) {
     return a + " === ''";
   },

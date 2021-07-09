@@ -108,6 +108,9 @@ describe('Query', () => {
     expect(q7.toArray().length).toBe(2);
     expect(q7.toArray()[0].id).toBe(2);
     expect(q7.toArray()[1].id).toBe(4);
+
+    const qIn = q.filter({field: 'id', operator: 'in', value: [7, 9]})
+    expect(qIn.toArray().length).toBe(2);
   });
 
   it('should group ok', function() {
