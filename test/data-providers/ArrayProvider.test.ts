@@ -45,5 +45,6 @@ describe('ArrayProvider', () => {
     })
 
     expect(rs2.data.length).toBe(2)
+    expect(rs2.total).toBe(3)
   })
 });
