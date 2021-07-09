@@ -93,7 +93,6 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       insert: action,
       add: action,
       remove: action,
-      fetch: action,
       cancelChanges: action,
       setSort: action,
       setFilters: action,
@@ -282,8 +281,9 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
 
           this.originData = result.data;
           this.data = result.data.map(item => this.parse(item));
+          this.loadings.fetching = false;
         });
-      } finally {
+      } catch (e) {
         runInAction(() => {
           this.loadings.fetching = false;
         });
