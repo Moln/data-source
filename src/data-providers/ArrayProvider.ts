@@ -105,7 +105,7 @@ export default class ArrayProvider<
     const start = (page - 1) * pageSize;
     return Promise.resolve({
       data: data.range(start, pageSize).toArray(),
-      total: this.data.length,
+      total: data.toArray().length,
     });
   }
 
