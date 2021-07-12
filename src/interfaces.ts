@@ -140,7 +140,7 @@ export interface IDataSource<
   setSort(
     field: SortOptions<T>,
     dir?: SortDir
-  ): (SortOptions1 | SortOptions2<T>)[];
+  ): (SortOptions1 | SortOptions2<T>)[] | null;
 
   setFilters(
     filters:

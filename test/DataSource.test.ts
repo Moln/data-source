@@ -1,6 +1,4 @@
 import { ArrayProvider, Model } from '../src';
-import { observable, observe } from "mobx";
-import { deepObserve } from "../src/mobx/utils";
 
 describe('DataSource', () => {
   it('DataSource add model', () => {
@@ -86,5 +84,23 @@ describe('DataSource', () => {
     expect(ds.data.length).toBe(4)
     expect(dp.data.length).toBe(4)
     expect(dp.data[3]).toMatchObject({name: 'test'})
+  });
+
+  it('test setSort', async function () {
+    const data = [
+      {id: 1, name: 'foo'},
+      {id: 2, name: 'bar'},
+      {id: 3, name: 'baz'},
+    ];
+    const dp = new ArrayProvider<Record<any, any>>(data);
+    const ds = dp.createDataSource();
+    ds.setSort('id', 'desc')
+    await ds.fetch()
+
+    expect(ds.data[0].id).toBe(3)
+
+    ds.setSort(null)
+    await ds.fetch()
+    expect(ds.data[0].id).toBe(1)
   });
 });

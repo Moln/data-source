@@ -322,7 +322,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   setSort(
     field: SortOptions<T>,
     dir?: SortDir
-  ): (SortOptions1 | SortOptions2<T>)[] {
+  ) {
     this.sort = normalizeSort(field, dir);
     return this.sort;
   }
@@ -333,7 +333,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       | DataSourceFilterItem<T>[]
       | DataSourceFilters<T>
       | null
-  ): DataSourceFilters<T> | null {
+  ) {
     this.filter = normalizeFilter(filters);
     return this.filter;
   }

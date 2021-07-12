@@ -417,18 +417,15 @@ function filterExpr<T>(expression: DataSourceFilters<T>) {
   };
 }
 
-// export function normalizeSort(field: string, dir?: SortDir): SortOptions[];
-// export function normalizeSort(field: SortOptions): SortOptions[];
-// export function normalizeSort(field: SortOptions[]): SortOptions[];
-export function normalizeSort<T>(
-  field: SortOptions<T>,
-  dir: SortDir = 'asc'
-): (SortOptions1 | SortOptions2<T>)[] {
+// export function normalizeSort<T>(field: string | KeyOfString<T>, dir?: SortDir): (SortOptions1 | SortOptions2<T>)[];
+// export function normalizeSort<T>(field: SortOptions<T>): (SortOptions1 | SortOptions2<T>)[];
+// export function normalizeSort<T>(field: (SortOptions1 | SortOptions2<T>)[]): (SortOptions1 | SortOptions2<T>)[];
+export function normalizeSort<T>(field: SortOptions<T>, dir: SortDir = 'asc'): (SortOptions1 | SortOptions2<T>)[] {
   if (isArray(field)) {
     return field;
-  }
-
-  if (typeof field === 'string') {
+  } else if (field === null) {
+    return field;
+  } else if (typeof field === 'string') {
     return [{ field, dir }];
   } else {
     field.dir = field.dir || dir;
