@@ -196,6 +196,9 @@ export default class Model<T extends object> implements IModel<T> {
       let target: Record<any, any> = model;
       let lastKey = _keys.pop()!;
       _keys.forEach(key => {
+        if (target[key] === undefined || target[key] === null) {
+          target[key] = {}
+        }
         target = target[key];
       });
 
