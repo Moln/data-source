@@ -135,8 +135,11 @@ export interface IDataSource<
   data: IModelT<T>[];
   filter: DataSourceFilters<T> | null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null;
-  loading: boolean;
-
+  readonly loading: boolean;
+  loadings: {
+    fetching: boolean,
+    syncing: boolean,
+  };
   setSort(
     field: SortOptions<T>,
     dir?: SortDir
