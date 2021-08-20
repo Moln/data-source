@@ -240,12 +240,17 @@ export default class Model<T extends object> implements IModel<T> {
   }
 
   resetProperty(key: keyof T): this {
-    const dirtyFields = this[PROPERTIES].dirtyFields;
+    const {dirtyFields, model, obModel} = this[PROPERTIES];
     const index = dirtyFields.indexOf(key);
 
     if (index !== -1) {
+      if (key in model) {
+        obModel[key] = model[key];
+      } else {
+        delete obModel[key];
+      }
+
       dirtyFields.splice(index, 1);
-      this.set(key, this[PROPERTIES].model[key]);
     }
 
     return this;

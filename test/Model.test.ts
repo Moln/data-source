@@ -142,4 +142,17 @@ describe('DataSource/Model', () => {
     expect(m.get('test')).toBe('foo')
 
   });
+
+  it('resetProperty', function () {
+    const m = createModel({name: 'foo', age: 18});
+    m.name = 'test'
+    expect(m.isDirty()).toBeTruthy();
+    expect(m.isPropertyDirty('name')).toBeTruthy();
+    expect(m.dirtyFields()).toHaveProperty('name');
+
+    m.resetProperty('name')
+    expect(m.isDirty()).toBeFalsy();
+    expect(m.isPropertyDirty('name')).toBeFalsy();
+    expect(m.dirtyFields()).not.toHaveProperty('name');
+  });
 });
