@@ -9,13 +9,21 @@ export default class Resources {
     private ajv: Ajv = new Ajv()
   ) {}
 
-  create<T extends object>(name: string) {
+  create<T extends object>(path: string, pathValues?: string | number | Record<string, string | number>) {
     let schema: Schema<T>;
-    if (this.ajv.getSchema(name)) {
-      schema = new Schema<T>(this.ajv, name);
+    if (this.ajv.getSchema(path)) {
+      schema = new Schema<T>(this.ajv, path);
     } else {
       schema = new Schema<T>();
     }
-    return new RestProvider<T>(`/${name}`, this.http, schema);
+
+    if (pathValues && typeof pathValues !== 'object') {
+      pathValues = {id: pathValues}
+    }
+
+    Object.entries(pathValues || {}).forEach(([key, value]) => {
+      path = path.replace('{' + key +'}', String(value))
+    })
+    return new RestProvider<T>(`/${path}`, this.http, schema);
   }
 }

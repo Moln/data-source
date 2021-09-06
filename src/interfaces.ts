@@ -250,6 +250,10 @@ export interface IDataProvider<
   create(model: Partial<T>): Promise<T>;
   update(primary: T[keyof T], model: Partial<T>): Promise<T>;
   remove(model: Partial<T> | T[keyof T]): Promise<void>;
+
+  /**
+   * @deprecated use Resources.create instead.
+   */
   sub<T2 extends Record<string, any> = Record<string, any>>(
     id: string | number,
     resource: string

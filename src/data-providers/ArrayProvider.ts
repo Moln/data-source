@@ -109,6 +109,9 @@ export default class ArrayProvider<
     });
   }
 
+  /**
+   * @deprecated use Resources.create instead.
+   */
   sub<T2 extends Record<string, any> = Record<string, any>>(
     id: string | number,
     resource: string

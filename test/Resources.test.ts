@@ -8,6 +8,11 @@ describe('Resources', () => {
     const provider = resources.create('users');
 
     expect(provider).toBeInstanceOf(RestProvider);
+
+    const u = resources.create('user/users/{user_id}/attrs/{key}', {user_id: 123, key: 'name'});
+
+    expect((u as any).url).toBe('/user/users/123/attrs/name')
+
   });
 
   // it('should be `Date` object', () => {
