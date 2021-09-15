@@ -29,10 +29,6 @@ import {
   Schema,
 } from './';
 
-// todo
-// 1. option autoAsync
-// 2. endless
-// 3. pageable
 
 interface Changes<T> {
   added: IModelT<T>[];
@@ -422,7 +418,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       return obj as any;
     }
 
-    const m = this.modelFactory(obj, this.schema);
+    const m = this.modelFactory(obj, this.schema) as IModelT<T>;
 
     m.observe(change => {
       if (this.loadings.syncing) return;
