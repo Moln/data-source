@@ -9,7 +9,7 @@ export default class Resources {
     private ajv: Ajv = new Ajv()
   ) {}
 
-  create<T extends object>(path: string, pathValues?: string | number | Record<string, string | number>) {
+  create<T extends Record<string, any> = Record<string, any>>(path: string, pathValues?: string | number | Record<string, string | number>) {
     let schema: Schema<T>;
     if (this.ajv.getSchema(path)) {
       schema = new Schema<T>(this.ajv, path);
