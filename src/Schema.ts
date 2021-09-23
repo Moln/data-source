@@ -5,12 +5,14 @@ import { AnyValidateFunction } from 'ajv/lib/types/index';
 
 export interface BaseRootSchema extends JSONSchema7 {
   type: 'object';
-  primaryKey: string;
+  primaryKey?: string;
 }
+
+const defaultPrimaryKey = 'id'
 
 export const DEFAULT_SCHEMA: BaseRootSchema = {
   type: 'object',
-  primaryKey: 'id',
+  primaryKey: defaultPrimaryKey,
 };
 
 export default class Schema<
@@ -58,7 +60,7 @@ export default class Schema<
   }
 
   get primary(): keyof T & string {
-    return this.schema.primaryKey as keyof T & string;
+    return this.schema.primaryKey || defaultPrimaryKey;
   }
 
   isReadOnly(keys: string | string[]): boolean {
