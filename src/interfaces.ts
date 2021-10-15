@@ -127,7 +127,9 @@ export interface IDataSource<
   readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
 
-  paginator: false | {page: number, pageSize: number} | {cursor?: string | number, pageSize: number}
+  paginator: false |
+      {page: number, pageSize: number, type: 'page'} |
+      {cursor: string | number | null, pageSize: number, type: 'cursor'}
   page?: number;
   cursor?: string | number;
   pageSize?: number;
@@ -197,7 +199,9 @@ export interface ResponseEntity<T extends object = object> {
 
 export interface OptionsArg<T extends object = object> {
   modelFactory?: (obj: T, schema?: Schema<T>) => IModel<T>;
-  paginator?: false | {page?: number, pageSize?: number} | {cursor?: string | number, pageSize?: number}
+  paginator?: false |
+      {page?: number, pageSize?: number, type?: 'page'} |
+      {cursor?: string | number | null, pageSize?: number, type?: 'cursor'}
   autoSync?: boolean;
 }
 

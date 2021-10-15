@@ -103,4 +103,22 @@ describe('DataSource', () => {
     await ds.fetch()
     expect(ds.data[0].id).toBe(1)
   });
+
+  it('test paginator options', function () {
+    let ds = new ArrayProvider([]).createDataSource({paginator: {type: 'cursor'}});
+    expect(ds.paginator).toMatchObject({type: 'cursor', pageSize: 20, cursor: null})
+
+    ds = new ArrayProvider([]).createDataSource({paginator: {type: 'cursor', cursor: '2'}});
+    expect(ds.paginator).toMatchObject({type: 'cursor', pageSize: 20, cursor: '2'})
+
+    ds = new ArrayProvider([]).createDataSource();
+    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 20, page: 1})
+
+    ds = new ArrayProvider([]).createDataSource({paginator: {page: 2}});
+    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 20, page: 2})
+
+    ds = new ArrayProvider([]).createDataSource({paginator: {pageSize: 10}});
+    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 10, page: 1})
+
+  });
 });

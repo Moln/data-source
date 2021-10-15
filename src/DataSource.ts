@@ -35,19 +35,21 @@ interface Changes<T> {
   removed: IModelT<T>[];
   updated: IModelT<T>[];
 }
+const defaultPage = {
+  page: 1,
+  pageSize: 20,
+  type: 'page' as 'page',
+}
 
 export class DataSource<T extends Record<string, any> = Record<string, any>>
   implements IDataSource<T> {
-  static defaultPageSize = 20;
+  static defaultPageSize = defaultPage.pageSize;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
 
-  paginator: IDataSource['paginator'] = {
-    page: 1,
-    pageSize: DataSource.defaultPageSize,
-  }
+  paginator: IDataSource['paginator'] = { ...defaultPage}
   total = 0;
   filter: DataSourceFilters<T> | null = null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null = null;
@@ -70,7 +72,20 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   ) {
     const paginator = options.paginator
     if (paginator !== undefined) {
-      this.paginator = paginator && { page: 1, pageSize: DataSource.defaultPageSize, ...paginator };
+      if (paginator === false) {
+        this.paginator = false
+      } else if (paginator.type === 'cursor') {
+        this.paginator = {
+          pageSize: defaultPage.pageSize,
+          cursor: null,
+          ...paginator as {type: 'cursor'}
+        };
+      } else {
+        this.paginator = {
+          ...defaultPage,
+          ...paginator as {type: 'page'}
+        };
+      }
     }
     if (options.modelFactory) {
       this.modelFactory = options.modelFactory
