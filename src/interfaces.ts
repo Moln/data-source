@@ -135,6 +135,7 @@ export interface IDataSource<
   pageSize?: number;
   total: number;
   data: IModelT<T>[];
+  readonly meta: Record<string, any>;
   filter: DataSourceFilters<T> | null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null;
   readonly loading: boolean;
@@ -191,6 +192,7 @@ export type FetchParams<T extends object> = Partial<
 export interface ResponseCollection<T extends object = { [k in string]: any }> {
   data: T[];
   total?: number;
+  [key: string]: any;
 }
 
 export interface ResponseEntity<T extends object = object> {

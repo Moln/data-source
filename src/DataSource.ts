@@ -48,8 +48,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
   private lastFetchProcess?: Promise<IModelT<T>[]>;
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
-
-  paginator: IDataSource['paginator'] = { ...defaultPage}
+  meta = {}
+  paginator: IDataSource<T>['paginator'] = { ...defaultPage}
   total = 0;
   filter: DataSourceFilters<T> | null = null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null = null;
@@ -99,6 +99,8 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
       filter: observable,
       sort: observable,
       loadings: observable,
+      meta: observable,
+
       loading: computed,
 
       insert: action,
@@ -283,16 +285,17 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
         this.loadings.fetching = true;
       });
       try {
-        const result = await this.dataProvider.fetch(this);
+        const {data, total, ...meta} = await this.dataProvider.fetch(this);
 
         runInAction(() => {
-          if (result.total !== undefined) {
-            this.total = result.total;
+          if (total !== undefined) {
+            this.total = total;
           }
 
-          this.originData = result.data;
-          this.data = result.data.map(item => this.parse(item));
+          this.originData = data;
+          this.data = data.map(item => this.parse(item));
           this.loadings.fetching = false;
+          this.meta = meta;
         });
       } catch (e) {
         runInAction(() => {
