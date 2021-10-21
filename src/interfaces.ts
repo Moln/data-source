@@ -122,7 +122,8 @@ export interface DataSourceGroupItem<T> {
 }
 
 export interface IDataSource<
-  T extends Record<string, any> = Record<string, any>
+  T extends Record<string, any> = Record<string, any>,
+  M extends Record<string, any> = Record<string, any>
 > {
   readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
@@ -135,7 +136,7 @@ export interface IDataSource<
   pageSize?: number;
   total: number;
   data: IModelT<T>[];
-  readonly meta: Record<string, any>;
+  readonly meta: M;
   filter: DataSourceFilters<T> | null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null;
   readonly loading: boolean;

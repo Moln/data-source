@@ -41,14 +41,17 @@ const defaultPage = {
   type: 'page' as 'page',
 }
 
-export class DataSource<T extends Record<string, any> = Record<string, any>>
-  implements IDataSource<T> {
+export class DataSource<
+    T extends Record<string, any> = Record<string, any>,
+    M extends Record<string, any> = Record<string, any>
+  >
+  implements IDataSource<T, M> {
   static defaultPageSize = defaultPage.pageSize;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
-  meta = {}
+  meta: M = {} as M
   paginator: IDataSource<T>['paginator'] = { ...defaultPage}
   total = 0;
   filter: DataSourceFilters<T> | null = null;
@@ -295,7 +298,7 @@ export class DataSource<T extends Record<string, any> = Record<string, any>>
           this.originData = data;
           this.data = data.map(item => this.parse(item));
           this.loadings.fetching = false;
-          this.meta = meta;
+          this.meta = meta as M;
         });
       } catch (e) {
         runInAction(() => {
