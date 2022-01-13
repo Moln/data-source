@@ -398,7 +398,9 @@ function filterExpr<T>(expression: DataSourceFilters<T>) {
           ')';
         operatorFunctions.push(operator);
       } else {
-        expressionStr = operators[(operator || 'eq').toLowerCase() as OperatorKeys](
+        expressionStr = operators[
+          (operator || 'eq').toLowerCase() as OperatorKeys
+        ](
           exp,
           filter.value,
           filter.ignoreCase !== undefined ? filter.ignoreCase : true,
@@ -420,7 +422,10 @@ function filterExpr<T>(expression: DataSourceFilters<T>) {
 // export function normalizeSort<T>(field: string | KeyOfString<T>, dir?: SortDir): (SortOptions1 | SortOptions2<T>)[];
 // export function normalizeSort<T>(field: SortOptions<T>): (SortOptions1 | SortOptions2<T>)[];
 // export function normalizeSort<T>(field: (SortOptions1 | SortOptions2<T>)[]): (SortOptions1 | SortOptions2<T>)[];
-export function normalizeSort<T>(field: SortOptions<T>, dir: SortDir = 'asc'): (SortOptions1 | SortOptions2<T>)[] {
+export function normalizeSort<T>(
+  field: SortOptions<T>,
+  dir: SortDir = 'asc'
+): (SortOptions1 | SortOptions2<T>)[] {
   if (isArray(field)) {
     return field;
   } else if (field === null) {

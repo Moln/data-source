@@ -25,26 +25,28 @@ describe('ArrayProvider', () => {
 
   it('fetch', async () => {
     const data = [
-      {id: 1, name: 'foo'},
-      {id: 2, name: 'bar'},
-      {id: 3, name: 'baz'},
+      { id: 1, name: 'foo' },
+      { id: 2, name: 'bar' },
+      { id: 3, name: 'baz' },
     ];
 
     const ds = new ArrayProvider(data);
     const rs = await ds.fetch({
-      filter: {filters: [{field: 'name', operator: 'contains', value: 'ba'}]},
-      sort: [{field: 'id', dir: 'desc'}]
-    })
+      filter: {
+        filters: [{ field: 'name', operator: 'contains', value: 'ba' }],
+      },
+      sort: [{ field: 'id', dir: 'desc' }],
+    });
 
-    expect(rs.data.length).toBe(2)
-    expect(rs.data[0].id).toBe(3)
+    expect(rs.data.length).toBe(2);
+    expect(rs.data[0].id).toBe(3);
 
     const rs2 = await ds.fetch({
       page: 1,
       pageSize: 2,
-    })
+    });
 
-    expect(rs2.data.length).toBe(2)
-    expect(rs2.total).toBe(3)
-  })
+    expect(rs2.data.length).toBe(2);
+    expect(rs2.total).toBe(3);
+  });
 });

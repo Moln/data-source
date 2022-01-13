@@ -1,4 +1,4 @@
-import { OfflineServerProvider, RestProvider } from '../../src';
+import { ArrayProvider, OfflineServerProvider, RestProvider } from '../../src';
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
@@ -63,5 +63,16 @@ describe('OfflineServerProvider', () => {
     expect(rs4).toEqual({ id: 11, name: 'foo' });
 
     await ds.remove({ id: 2 });
+  });
+
+  it('should clear data', async () => {
+    const dp = new OfflineServerProvider(
+      new ArrayProvider([{ id: 1, name: 'foo' }])
+    );
+    expect((dp as any).data).toBeNull();
+    await dp.fetch();
+    expect((dp as any).data).toBeInstanceOf(ArrayProvider);
+    dp.clear();
+    expect((dp as any).data).toBeNull();
   });
 });

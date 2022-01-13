@@ -6,8 +6,8 @@ import {
 } from '../interfaces';
 import { DataSource, DEFAULT_SCHEMA, guid } from '../';
 import Schema from '../Schema';
-import Query from "../Query";
-import Model from "../Model";
+import Query from '../Query';
+import Model from '../Model';
 
 // export function factory<T extends object = object>(url: string): DataSource<T>;
 // export function factory<T extends object = object>(data: T[] | string, schema: BaseRootSchema = DEFAULT_SCHEMA, options: OptionsArg<T> = {}) {
@@ -25,11 +25,11 @@ export default class ArrayProvider<
     public readonly data: T[],
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
   ) {
-    data.forEach((item) => {
+    data.forEach(item => {
       if (!item[schema.primary]) {
-        item[schema.primary] = guid() as any
+        item[schema.primary] = guid() as any;
       }
-    })
+    });
   }
 
   createDataSource(options?: OptionsArg<T>): DataSource<T> {
@@ -47,9 +47,9 @@ export default class ArrayProvider<
 
   create(model: Partial<T>): Promise<T> {
     if (model instanceof Model) {
-      model = model.toJS()
+      model = model.toJS();
     }
-    if (! model[this.primary]) {
+    if (!model[this.primary]) {
       model[this.primary] = guid() as any;
     }
     this.data.push(model as T);
@@ -82,17 +82,16 @@ export default class ArrayProvider<
   }
 
   fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> {
-
     const page = params?.page;
     const pageSize = params?.pageSize;
 
     let data = new Query(this.data);
 
     if (params?.sort) {
-      data = data.order(params.sort)
+      data = data.order(params.sort);
     }
     if (params?.filter) {
-      data = data.filter(params.filter)
+      data = data.filter(params.filter);
     }
 
     if (!page || !pageSize) {
@@ -107,18 +106,5 @@ export default class ArrayProvider<
       data: data.range(start, pageSize).toArray(),
       total: data.toArray().length,
     });
-  }
-
-  /**
-   * @deprecated use Resources.create instead.
-   */
-  sub<T2 extends Record<string, any> = Record<string, any>>(
-    id: string | number,
-    resource: string
-  ): IDataProvider<T2> {
-    const row = this.data.find(row => row[this.primary] === id);
-    const data = (row && row[resource]) || [];
-
-    return new ArrayProvider(data, new Schema<T2>(this.schema.ajv, resource));
   }
 }

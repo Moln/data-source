@@ -29,7 +29,6 @@ import {
   Schema,
 } from './';
 
-
 interface Changes<T> {
   added: IModelT<T>[];
   removed: IModelT<T>[];
@@ -39,20 +38,19 @@ const defaultPage = {
   page: 1,
   pageSize: 20,
   type: 'page' as 'page',
-}
+};
 
 export class DataSource<
-    T extends Record<string, any> = Record<string, any>,
-    M extends Record<string, any> = Record<string, any>
-  >
-  implements IDataSource<T, M> {
+  T extends Record<string, any> = Record<string, any>,
+  M extends Record<string, any> = Record<string, any>
+> implements IDataSource<T, M> {
   static defaultPageSize = defaultPage.pageSize;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
-  meta: M = {} as M
-  paginator: IDataSource<T>['paginator'] = { ...defaultPage}
+  meta: M = {} as M;
+  paginator: IDataSource<T>['paginator'] = { ...defaultPage };
   total = 0;
   filter: DataSourceFilters<T> | null = null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null = null;
@@ -64,7 +62,10 @@ export class DataSource<
   };
   private originData: T[] = [];
 
-  private modelFactory: Exclude<OptionsArg<T>['modelFactory'], undefined> = createModel
+  private modelFactory: Exclude<
+    OptionsArg<T>['modelFactory'],
+    undefined
+  > = createModel;
 
   private autoSync: boolean = false;
 
@@ -73,27 +74,27 @@ export class DataSource<
     public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
     options: OptionsArg<T> = {}
   ) {
-    const paginator = options.paginator
+    const paginator = options.paginator;
     if (paginator !== undefined) {
       if (paginator === false) {
-        this.paginator = false
+        this.paginator = false;
       } else if (paginator.type === 'cursor') {
         this.paginator = {
           pageSize: defaultPage.pageSize,
           cursor: null,
-          ...paginator as {type: 'cursor'}
+          ...(paginator as { type: 'cursor' }),
         };
       } else {
         this.paginator = {
           ...defaultPage,
-          ...paginator as {type: 'page'}
+          ...(paginator as { type: 'page' }),
         };
       }
     }
     if (options.modelFactory) {
-      this.modelFactory = options.modelFactory
+      this.modelFactory = options.modelFactory;
     }
-    this.autoSync = options.autoSync || false
+    this.autoSync = options.autoSync || false;
 
     makeObservable(this, {
       data: observable,
@@ -145,8 +146,8 @@ export class DataSource<
         if (change.type !== 'splice') {
           return;
         }
-        this.autoSync && this.sync()
-      })
+        this.autoSync && this.sync();
+      });
     };
 
     intercept(this, 'data', c => {
@@ -170,35 +171,35 @@ export class DataSource<
       return c;
     });
 
-    initData()
+    initData();
     observe(this, 'data', initData);
   }
 
   get page() {
-    const paginator = this.paginator as (false | {page: number})
-    return paginator ? paginator.page : undefined
+    const paginator = this.paginator as false | { page: number };
+    return paginator ? paginator.page : undefined;
   }
 
   get pageSize() {
-    const paginator = this.paginator as (false | {pageSize: number})
-    return paginator ? paginator.pageSize : undefined
+    const paginator = this.paginator as false | { pageSize: number };
+    return paginator ? paginator.pageSize : undefined;
   }
 
   set page(value: number | undefined) {
-    (this.paginator as {page: number}).page = value as number
+    (this.paginator as { page: number }).page = value as number;
   }
 
   set pageSize(value: number | undefined) {
-    (this.paginator as {pageSize: number}).pageSize = value as number
+    (this.paginator as { pageSize: number }).pageSize = value as number;
   }
 
   get cursor() {
-    const paginator = this.paginator as (false | {cursor: number})
-    return paginator ? paginator.cursor : undefined
+    const paginator = this.paginator as false | { cursor: number };
+    return paginator ? paginator.cursor : undefined;
   }
 
   set cursor(value: string | number | undefined) {
-    (this.paginator as any).cursor = value
+    (this.paginator as any).cursor = value;
   }
 
   insert(index: number, obj: T | object): IModelT<T> {
@@ -227,7 +228,7 @@ export class DataSource<
   }
 
   hasChanges() {
-    const {updated, added, removed} = this.changes
+    const { updated, added, removed } = this.changes;
     return Boolean(updated.length || added.length || removed.length);
   }
 
@@ -288,7 +289,7 @@ export class DataSource<
         this.loadings.fetching = true;
       });
       try {
-        const {data, total, ...meta} = await this.dataProvider.fetch(this);
+        const { data, total, ...meta } = await this.dataProvider.fetch(this);
 
         runInAction(() => {
           if (total !== undefined) {
@@ -316,9 +317,9 @@ export class DataSource<
 
   remove(model: string | number | IModelT<T>): number {
     if (typeof model !== 'object') {
-      const item = this.get(model)
-      if (! item) {
-        return -1
+      const item = this.get(model);
+      if (!item) {
+        return -1;
       }
       model = item;
     }
@@ -336,10 +337,7 @@ export class DataSource<
     return i;
   }
 
-  setSort(
-    field: SortOptions<T>,
-    dir?: SortDir
-  ) {
+  setSort(field: SortOptions<T>, dir?: SortDir) {
     this.sort = normalizeSort(field, dir);
     return this.sort;
   }
@@ -445,7 +443,7 @@ export class DataSource<
       if (this.loadings.syncing) return;
 
       if (m.isNew()) {
-        return ;
+        return;
       }
 
       const idx = this.changes.updated.indexOf(m);
@@ -453,7 +451,7 @@ export class DataSource<
         if (idx === -1) {
           this.changes.updated.push(m);
 
-          this.autoSync && this.sync()
+          this.autoSync && this.sync();
         }
       } else {
         this.changes.updated.splice(idx, 1);

@@ -16,7 +16,7 @@ import {
   IInterceptor,
 } from 'mobx';
 
-import {IDisposer} from "../interfaces";
+import { IDisposer } from '../interfaces';
 
 type IChange = IObjectDidChange | IArrayDidChange | IMapDidChange;
 

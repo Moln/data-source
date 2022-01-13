@@ -1,5 +1,11 @@
-import { extendObservable, intercept, observable } from 'mobx';
-import { BaseRootSchema, createModel, DEFAULT_SCHEMA, Model, PROPERTIES, Schema } from '../src';
+import { extendObservable, observable } from 'mobx';
+import {
+  BaseRootSchema,
+  createModel,
+  DEFAULT_SCHEMA,
+  Model,
+  Schema,
+} from '../src';
 
 const testSchema: BaseRootSchema = Object.assign(
   {
@@ -23,11 +29,14 @@ const testSchema: BaseRootSchema = Object.assign(
 
 describe('DataSource/Model', () => {
   it('starts at 0', () => {
-    const m = createModel({
-      name: 'Test',
-      isDirty: 222,
-      sub: { a: [{ a2: 1 }], b: 2 },
-    }, new Schema(testSchema));
+    const m = createModel(
+      {
+        name: 'Test',
+        isDirty: 222,
+        sub: { a: [{ a2: 1 }], b: 2 },
+      },
+      new Schema(testSchema)
+    );
 
     // m.observe(change => console.log(change))
 
@@ -43,11 +52,10 @@ describe('DataSource/Model', () => {
     expect(m.isNew()).toBeTruthy();
     expect(m.name).toBe('test2');
 
-    m.set('id', 1)
-    m.submit()
+    m.set('id', 1);
+    m.submit();
     expect(m.isNew()).toBeFalsy();
     expect(m.isDirty()).toBeFalsy();
-
   });
 
   it('should model success', function() {
@@ -105,7 +113,6 @@ describe('DataSource/Model', () => {
     expect(obj1.dirtyFields()).toEqual({ name: 'Test123' });
   });
 
-
   it('should schema default values', function() {
     const m = createModel({}, new Schema(testSchema));
 
@@ -113,44 +120,48 @@ describe('DataSource/Model', () => {
     expect(m.isDirty()).toBeFalsy();
   });
 
-  it('should extends setter', function () {
+  it('should extends setter', function() {
     const noop = () => {};
-    class DateModel<T extends Record<any, any> = Record<any, any>> extends Model<T> {
+    class DateModel<
+      T extends Record<any, any> = Record<any, any>
+    > extends Model<T> {
       get date() {
-        return new Date(this.get('time'))
+        return new Date(this.get('time'));
       }
       set date(value: Date) {
-        this.set('time', value.toISOString())
+        this.set('time', value.toISOString());
       }
 
-      test = noop
+      test = noop;
     }
 
-    const m = new DateModel({ time: '2021/01/02 00:00:00' }) as Record<any, any>
+    const m = new DateModel({ time: '2021/01/02 00:00:00' }) as Record<
+      any,
+      any
+    >;
     // m.date = new Date('2021/01/01 00:00:00');
     const d1 = new Date('2021/01/01 00:00:00');
 
     m.set('date2', d1);
-    expect(m.date2).toBe(d1)
+    expect(m.date2).toBe(d1);
 
     m.set('date', new Date('2021/01/01 00:00:00'));
-    expect(m.time).toBe('2020-12-31T16:00:00.000Z')
-    expect(m.date.toISOString()).toBe('2020-12-31T16:00:00.000Z')
+    expect(m.time).toBe('2020-12-31T16:00:00.000Z');
+    expect(m.date.toISOString()).toBe('2020-12-31T16:00:00.000Z');
 
     m.set('test', 'foo');
-    expect(m.test).toBe(noop)
-    expect(m.get('test')).toBe('foo')
-
+    expect(m.test).toBe(noop);
+    expect(m.get('test')).toBe('foo');
   });
 
-  it('resetProperty', function () {
-    const m = createModel({name: 'foo', age: 18});
-    m.name = 'test'
+  it('resetProperty', function() {
+    const m = createModel({ name: 'foo', age: 18 });
+    m.name = 'test';
     expect(m.isDirty()).toBeTruthy();
     expect(m.isPropertyDirty('name')).toBeTruthy();
     expect(m.dirtyFields()).toHaveProperty('name');
 
-    m.resetProperty('name')
+    m.resetProperty('name');
     expect(m.isDirty()).toBeFalsy();
     expect(m.isPropertyDirty('name')).toBeFalsy();
     expect(m.dirtyFields()).not.toHaveProperty('name');

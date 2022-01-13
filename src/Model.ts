@@ -53,7 +53,8 @@ function defineProperty<T extends object>(
 }
 
 function isSetter(obj: object, key: string): boolean {
-  return !!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), key)?.set
+  return !!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), key)
+    ?.set;
 }
 
 export default class Model<T extends object> implements IModel<T> {
@@ -188,7 +189,7 @@ export default class Model<T extends object> implements IModel<T> {
       return this;
     }
 
-    if (! (_keys[0] in this)) {
+    if (!(_keys[0] in this)) {
       defineProperty(this, model, _keys[0]);
     }
 
@@ -197,7 +198,7 @@ export default class Model<T extends object> implements IModel<T> {
       let lastKey = _keys.pop()!;
       _keys.forEach(key => {
         if (target[key] === undefined || target[key] === null) {
-          target[key] = {}
+          target[key] = {};
         }
         target = target[key];
       });
@@ -240,7 +241,7 @@ export default class Model<T extends object> implements IModel<T> {
   }
 
   resetProperty(key: keyof T): this {
-    const {dirtyFields, model, obModel} = this[PROPERTIES];
+    const { dirtyFields, model, obModel } = this[PROPERTIES];
     const index = dirtyFields.indexOf(key);
 
     if (index !== -1) {

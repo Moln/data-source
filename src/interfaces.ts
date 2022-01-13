@@ -76,8 +76,7 @@ export type OperatorKeys =
   | 'matches'
   | 'doesnotmatch'
   | 'isnullorempty'
-  | 'isnotnullorempty'
-;
+  | 'isnotnullorempty';
 
 export interface DataSourceFilterItem<T> {
   operator?: OperatorKeys;
@@ -128,9 +127,10 @@ export interface IDataSource<
   readonly dataProvider: IDataProvider<T>;
   readonly schema: Schema<T>;
 
-  paginator: false |
-      {page: number, pageSize: number, type: 'page'} |
-      {cursor: string | number | null, pageSize: number, type: 'cursor'}
+  paginator:
+    | false
+    | { page: number; pageSize: number; type: 'page' }
+    | { cursor: string | number | null; pageSize: number; type: 'cursor' };
   page?: number;
   cursor?: string | number;
   pageSize?: number;
@@ -141,8 +141,8 @@ export interface IDataSource<
   sort: (SortOptions1 | SortOptions2<T>)[] | null;
   readonly loading: boolean;
   loadings: {
-    fetching: boolean,
-    syncing: boolean,
+    fetching: boolean;
+    syncing: boolean;
   };
   setSort(
     field: SortOptions<T>,
@@ -187,8 +187,7 @@ export interface IDataSource<
 
 export type FetchParams<T extends object> = Partial<
   Pick<IDataSource<T>, 'filter' | 'sort' | 'page' | 'pageSize' | 'cursor'>
-> & {cursor?: string | number};
-
+> & { cursor?: string | number };
 
 export interface ResponseCollection<T extends object = { [k in string]: any }> {
   data: T[];
@@ -202,9 +201,10 @@ export interface ResponseEntity<T extends object = object> {
 
 export interface OptionsArg<T extends object = object> {
   modelFactory?: (obj: T, schema?: Schema<T>) => IModel<T>;
-  paginator?: false |
-      {page?: number, pageSize?: number, type?: 'page'} |
-      {cursor?: string | number | null, pageSize?: number, type?: 'cursor'}
+  paginator?:
+    | false
+    | { page?: number; pageSize?: number; type?: 'page' }
+    | { cursor?: string | number | null; pageSize?: number; type?: 'cursor' };
   autoSync?: boolean;
 }
 
@@ -257,12 +257,4 @@ export interface IDataProvider<
   create(model: Partial<T>): Promise<T>;
   update(primary: T[keyof T], model: Partial<T>): Promise<T>;
   remove(model: Partial<T> | T[keyof T]): Promise<void>;
-
-  /**
-   * @deprecated use Resources.create instead.
-   */
-  sub<T2 extends Record<string, any> = Record<string, any>>(
-    id: string | number,
-    resource: string
-  ): IDataProvider<T2>;
 }

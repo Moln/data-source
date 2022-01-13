@@ -48,77 +48,91 @@ describe('DataSource', () => {
     expect(ds.data.length).toBe(0);
   });
 
-
   it('DataSource modelFactory', () => {
     class DateModel extends Model<Record<any, any>> {
       get date() {
-        return new Date(this.get('time'))
+        return new Date(this.get('time'));
       }
       set date(value: Date) {
-        this.set('time', value.toISOString())
+        this.set('time', value.toISOString());
       }
       toJS(uuid?: boolean) {
         return super.toJS(uuid);
       }
     }
 
-    const ds = new ArrayProvider<Record<any, any>>([]).createDataSource({modelFactory: (obj, schema) => new DateModel(obj, schema)});
+    const ds = new ArrayProvider<Record<any, any>>([]).createDataSource({
+      modelFactory: (obj, schema) => new DateModel(obj, schema),
+    });
     const m = ds.add({ name: 'test' });
 
-    expect(m).toBeInstanceOf(DateModel)
+    expect(m).toBeInstanceOf(DateModel);
   });
 
-  it('should auto sync', async function () {
+  it('should auto sync', async function() {
     const data = [
-      {id: 1, name: 'foo'},
-      {id: 2, name: 'bar'},
-      {id: 3, name: 'baz'},
+      { id: 1, name: 'foo' },
+      { id: 2, name: 'bar' },
+      { id: 3, name: 'baz' },
     ];
     const dp = new ArrayProvider<Record<any, any>>(data);
     const ds = dp.createDataSource({ autoSync: true });
-    await ds.fetch()
-    expect(ds.data.length).toBe(3)
+    await ds.fetch();
+    expect(ds.data.length).toBe(3);
 
-    const m = ds.add({name: 'test'});
+    ds.add({ name: 'test' });
 
-    expect(ds.data.length).toBe(4)
-    expect(dp.data.length).toBe(4)
-    expect(dp.data[3]).toMatchObject({name: 'test'})
+    expect(ds.data.length).toBe(4);
+    expect(dp.data.length).toBe(4);
+    expect(dp.data[3]).toMatchObject({ name: 'test' });
   });
 
-  it('test setSort', async function () {
+  it('test setSort', async function() {
     const data = [
-      {id: 1, name: 'foo'},
-      {id: 2, name: 'bar'},
-      {id: 3, name: 'baz'},
+      { id: 1, name: 'foo' },
+      { id: 2, name: 'bar' },
+      { id: 3, name: 'baz' },
     ];
     const dp = new ArrayProvider<Record<any, any>>(data);
     const ds = dp.createDataSource();
-    ds.setSort('id', 'desc')
-    await ds.fetch()
+    ds.setSort('id', 'desc');
+    await ds.fetch();
 
-    expect(ds.data[0].id).toBe(3)
+    expect(ds.data[0].id).toBe(3);
 
-    ds.setSort(null)
-    await ds.fetch()
-    expect(ds.data[0].id).toBe(1)
+    ds.setSort(null);
+    await ds.fetch();
+    expect(ds.data[0].id).toBe(1);
   });
 
-  it('test paginator options', function () {
-    let ds = new ArrayProvider([]).createDataSource({paginator: {type: 'cursor'}});
-    expect(ds.paginator).toMatchObject({type: 'cursor', pageSize: 20, cursor: null})
+  it('test paginator options', function() {
+    let ds = new ArrayProvider([]).createDataSource({
+      paginator: { type: 'cursor' },
+    });
+    expect(ds.paginator).toMatchObject({
+      type: 'cursor',
+      pageSize: 20,
+      cursor: null,
+    });
 
-    ds = new ArrayProvider([]).createDataSource({paginator: {type: 'cursor', cursor: '2'}});
-    expect(ds.paginator).toMatchObject({type: 'cursor', pageSize: 20, cursor: '2'})
+    ds = new ArrayProvider([]).createDataSource({
+      paginator: { type: 'cursor', cursor: '2' },
+    });
+    expect(ds.paginator).toMatchObject({
+      type: 'cursor',
+      pageSize: 20,
+      cursor: '2',
+    });
 
     ds = new ArrayProvider([]).createDataSource();
-    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 20, page: 1})
+    expect(ds.paginator).toMatchObject({ type: 'page', pageSize: 20, page: 1 });
 
-    ds = new ArrayProvider([]).createDataSource({paginator: {page: 2}});
-    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 20, page: 2})
+    ds = new ArrayProvider([]).createDataSource({ paginator: { page: 2 } });
+    expect(ds.paginator).toMatchObject({ type: 'page', pageSize: 20, page: 2 });
 
-    ds = new ArrayProvider([]).createDataSource({paginator: {pageSize: 10}});
-    expect(ds.paginator).toMatchObject({type: 'page', pageSize: 10, page: 1})
-
+    ds = new ArrayProvider([]).createDataSource({
+      paginator: { pageSize: 10 },
+    });
+    expect(ds.paginator).toMatchObject({ type: 'page', pageSize: 10, page: 1 });
   });
 });

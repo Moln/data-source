@@ -1,7 +1,6 @@
 import {
   IDataProvider,
   FetchParams,
-  IDataSource,
   OptionsArg,
   ResponseCollection,
 } from '../interfaces';
@@ -124,28 +123,5 @@ export default class RestProvider<
     }
 
     return;
-  }
-
-  /**
-   * @deprecated use Resources.create instead.
-   */
-  sub<T2 extends Record<string, any> = Record<string, any>>(
-    id: string | number,
-    resource: string
-  ): IDataProvider<T2> {
-
-    let schema: Schema<T2>;
-    if (this.schema.ajv.getSchema(resource)) {
-      schema = new Schema<T2>(this.schema.ajv, resource);
-    } else {
-      schema = new Schema<T2>();
-    }
-
-    return new RestProvider<T2>(
-      `${this.url}/${id}/${resource}`,
-      this.http,
-      schema,
-      this.normalizeParams as any
-    );
   }
 }

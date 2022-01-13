@@ -55,13 +55,7 @@ export default class OfflineServerProvider<
     return result;
   }
 
-  /**
-   * @deprecated use Resources.create instead.
-   */
-  sub<T2 extends Record<string, any> = Record<string, any>>(
-    id: string | number,
-    resource: string
-  ): IDataProvider<T2> {
-    return this.serverProvider.sub<T2>(id, resource);
+  clear() {
+    this.data = null;
   }
 }

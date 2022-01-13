@@ -6,8 +6,14 @@ describe('Query', () => {
     const rs = [];
     for (let i = 1; i <= 20; i++) {
       const time = new Date();
-      time.setHours(i)
-      rs.push({ id: i, name: i > 10 ? 'bbb' : 'aaa', gen: i % 2, age: 10 * i, time });
+      time.setHours(i);
+      rs.push({
+        id: i,
+        name: i > 10 ? 'bbb' : 'aaa',
+        gen: i % 2,
+        age: 10 * i,
+        time,
+      });
     }
 
     return rs;
@@ -111,13 +117,13 @@ describe('Query', () => {
     expect(q7.toArray()[0].id).toBe(2);
     expect(q7.toArray()[1].id).toBe(4);
 
-    const qIn = q.filter({field: 'id', operator: 'in', value: [7, 9]})
+    const qIn = q.filter({ field: 'id', operator: 'in', value: [7, 9] });
     expect(qIn.toArray().length).toBe(2);
 
     // test Date value
     const t = new Date();
-    t.setHours(3)
-    const qDate = q.filter({field: 'time', operator: 'lte', value: t})
+    t.setHours(3);
+    const qDate = q.filter({ field: 'time', operator: 'lte', value: t });
     expect(qDate.toArray().length).toBe(3);
   });
 

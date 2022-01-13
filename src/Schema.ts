@@ -8,7 +8,7 @@ export interface BaseRootSchema extends JSONSchema7 {
   primaryKey?: string;
 }
 
-const defaultPrimaryKey = 'id'
+const defaultPrimaryKey = 'id';
 
 export const DEFAULT_SCHEMA: BaseRootSchema = {
   type: 'object',

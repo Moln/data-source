@@ -154,10 +154,14 @@ function getMatchRegexp(pattern: string) {
   return rx + '$/';
 }
 
-type OperatorExprFn = (field: string, value: any, ignore: boolean, accentFoldingFiltering?: string | string[]) => string;
+type OperatorExprFn = (
+  field: string,
+  value: any,
+  ignore: boolean,
+  accentFoldingFiltering?: string | string[]
+) => string;
 
 export const operators: Record<OperatorKeys | string, OperatorExprFn> = {
-
   eq(
     a: any,
     b: any,
