@@ -1,4 +1,5 @@
 import { ArrayProvider } from '../../src';
+import { expect, describe, it } from 'vitest'
 
 describe('ArrayProvider', () => {
   it('ArrayProvider', async () => {
@@ -17,7 +18,7 @@ describe('ArrayProvider', () => {
     expect(rs3).toBe(bar);
     expect(rs3.name).toBe('bar2');
 
-    await ds.remove({ id: 2 });
+    await ds.remove(2);
 
     const rs4 = await ds.get(2);
     expect(rs4).toBeUndefined();

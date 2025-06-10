@@ -1,15 +1,14 @@
-import {
-  IDataProvider,
+import type {
   DataSourceFilterItem,
   DataSourceFilters,
   IDataSource,
   IModelT,
   OperatorKeys,
-  OptionsArg,
   SortDir,
   SortOptions,
   SortOptions1,
   SortOptions2,
+  ModelFactory,
 } from './interfaces';
 import {
   action,
@@ -21,13 +20,16 @@ import {
   runInAction,
 } from 'mobx';
 import {
-  createModel,
-  DEFAULT_SCHEMA,
-  Model,
   normalizeFilter,
   normalizeSort,
-  Schema,
-} from './';
+} from './query/Query';
+import {Schema} from './schema'
+import Model, {createModel} from './Model'
+import type {ISchema} from './schema'
+import type {IDataProvider} from "./data-providers";
+import type {OptionsArg} from "./internal";
+import {isArray} from "./utils";
+
 
 interface Changes<T> {
   added: IModelT<T>[];
@@ -37,10 +39,10 @@ interface Changes<T> {
 const defaultPage = {
   page: 1,
   pageSize: 20,
-  type: 'page' as 'page',
+  type: 'page' as const,
 };
 
-export class DataSource<
+export default class DataSource<
   T extends Record<string, any> = Record<string, any>,
   M extends Record<string, any> = Record<string, any>
 > implements IDataSource<T, M> {
@@ -62,18 +64,16 @@ export class DataSource<
   };
   private originData: T[] = [];
 
-  private modelFactory: Exclude<
-    OptionsArg<T>['modelFactory'],
-    undefined
-  > = createModel;
+  private readonly modelFactory: ModelFactory<T> = createModel as ModelFactory<T>;
 
-  private autoSync: boolean = false;
+  private readonly autoSync: boolean = false;
+  public readonly schema: ISchema
 
   constructor(
     public readonly dataProvider: IDataProvider<T>,
-    public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA),
     options: OptionsArg<T> = {}
   ) {
+    this.schema = options?.schema || new Schema();
     const paginator = options.paginator;
     if (paginator !== undefined) {
       if (paginator === false) {
@@ -122,11 +122,11 @@ export class DataSource<
 
     const changes = this.changes;
     const initData = () => {
-      intercept(this.data, (change: any) => {
-        if (this.loadings.syncing) return;
+      intercept(this.data, (change) => {
+        if (this.loadings.syncing) return null;
         if (change.type !== 'splice') {
-          console.log('Invalid change', change);
-          return;
+          console.warn('Deny change: ', change);
+          return null;
         }
         change.added = change.added.map((obj: T) => {
           const m = this.parse(obj);
@@ -134,11 +134,22 @@ export class DataSource<
           return m;
         });
         if (change.removedCount) {
-          const removed = change.object
-            .slice(change.index, change.index + change.removedCount)
-            .filter((item: IModelT<T>) => !item.isNew());
+          const changed = change.object
+            .slice(change.index, change.index + change.removedCount);
 
-          changes.removed = changes.removed.concat(removed);
+          const removed = changed.filter((item) => !item.isNew())
+          const added = changed.filter((item) => item.isNew())
+          if (removed.length) {
+            changes.removed = changes.removed.concat(removed);
+          }
+          if (added) {
+            added.forEach((item) => {
+              const index = changes.added.findIndex(m => m === item);
+              if (index >= 0) {
+                changes.added.splice(index, 1);
+              }
+            })
+          }
         }
         return change;
       });
@@ -146,7 +157,9 @@ export class DataSource<
         if (change.type !== 'splice') {
           return;
         }
-        this.autoSync && this.sync();
+        if (this.autoSync) {
+          this.sync();
+        }
       });
     };
 
@@ -154,17 +167,14 @@ export class DataSource<
       if (c.type !== 'update') {
         throw new Error(`Deny change type "${c.type}".`);
       }
-      if (!Array.isArray(c.newValue)) {
+      if (!isArray(c.newValue)) {
         console.warn(c);
-        throw new Error('Type error');
+        throw new Error('Type error, only object[] type.');
       }
 
       changes.added = [];
       changes.updated = [];
       changes.removed = [];
-
-      // this.bindModels.forEach((disposer) => disposer())
-      // this.bindModels.clear();
 
       c.newValue = c.newValue.map(this.parse);
 
@@ -209,9 +219,8 @@ export class DataSource<
   }
 
   add(obj: T | object): IModelT<T> {
-    const m = this.parse(obj as T);
-    this.data.push(m);
-    return m;
+    const size = this.data.push(obj as IModelT<T>);
+    return this.data[size - 1];
   }
 
   loadings = {
@@ -245,8 +254,6 @@ export class DataSource<
       if (model.isNew()) {
         const index = this.data.findIndex(m => m === model);
         this.data.splice(index, 1);
-
-        splice('added');
         return;
       }
 
@@ -264,15 +271,7 @@ export class DataSource<
       return;
     }
 
-    this.data = this.originData.slice() as IModelT<T>[];
-
-    const changes = this.changes;
-    changes.updated.forEach(updateModel => {
-      updateModel.reset();
-    });
-    changes.added = [];
-    changes.updated = [];
-    changes.removed = [];
+    this.data = this.originData as IModelT<T>[];
   }
 
   async fetchInit(): Promise<IModelT<T>[]> {
@@ -297,11 +296,11 @@ export class DataSource<
           }
 
           this.originData = data;
-          this.data = data.map(item => this.parse(item));
+          this.data = data as IModelT<T>[];
           this.loadings.fetching = false;
           this.meta = meta as M;
         });
-      } catch (e) {
+      } finally {
         runInAction(() => {
           this.loadings.fetching = false;
         });
@@ -316,25 +315,18 @@ export class DataSource<
   }
 
   remove(model: string | number | IModelT<T>): number {
+    let idx: number
     if (typeof model !== 'object') {
-      const item = this.get(model);
-      if (!item) {
-        return -1;
-      }
-      model = item;
+      idx = this.data.findIndex(item => item[this.primary] === model);
+    } else {
+      idx = this.data.findIndex(row => row === model);
     }
 
-    const i = this.data.findIndex(row => row === model);
-    if (model.isNew()) {
-      this.cancelChanges(model);
-      return i;
+    if (idx !== -1) {
+      this.data.splice(idx, 1);
     }
 
-    if (i !== -1) {
-      this.data.splice(i, 1);
-    }
-
-    return i;
+    return idx;
   }
 
   setSort(field: SortOptions<T>, dir?: SortDir) {
@@ -404,18 +396,18 @@ export class DataSource<
 
     try {
       for (const model of changes.added) {
-        const newModel = await this.dataProvider.create(model);
+        const newModel = await this.dataProvider.create(model.toJS());
         submitModel(model, newModel);
       }
       for (const model of changes.updated) {
         const newModel = await this.dataProvider.update(
-          model[this.primary],
+          model.getKey(),
           model.dirtyFields()
         );
         submitModel(model, newModel);
       }
       for (const model of changes.removed) {
-        await this.dataProvider.remove(model);
+        await this.dataProvider.remove(model.getKey());
       }
     } finally {
       this.loadings.syncing = false;
@@ -423,14 +415,11 @@ export class DataSource<
 
     this.originData = this.toJS();
 
-    // changes.removed.forEach(item => this.bindModels.delete(item))
     changes.added = [];
     changes.updated = [];
     changes.removed = [];
     return;
   }
-
-  // private bindModels: Map<IModelT<T>, IDisposer> = new Map();
 
   private parse = (obj: T): IModelT<T> => {
     if (obj instanceof Model) {
@@ -439,7 +428,7 @@ export class DataSource<
 
     const m = this.modelFactory(obj, this.schema) as IModelT<T>;
 
-    m.observe(change => {
+    m.observe(() => {
       if (this.loadings.syncing) return;
 
       if (m.isNew()) {
@@ -451,31 +440,14 @@ export class DataSource<
         if (idx === -1) {
           this.changes.updated.push(m);
 
-          this.autoSync && this.sync();
+          if (this.autoSync) {
+            this.sync();
+          }
         }
       } else {
         this.changes.updated.splice(idx, 1);
       }
     });
-
-    // const m = obj instanceof Model ? obj : createModel<T>(obj, this.schema);
-    //
-    // if (! this.bindModels.has(m)) {
-    //   const disposer = m.observe(() => {
-    //     if (this.loadings.syncing) return;
-    //
-    //     const idx = this.changes.updated.indexOf(m);
-    //     if (m.isDirty()) {
-    //       if (idx === -1) {
-    //         this.changes.updated.push(m);
-    //       }
-    //     } else {
-    //       this.changes.updated.splice(idx, 1);
-    //     }
-    //   });
-    //
-    //   this.bindModels.set(m, disposer);
-    // }
 
     return m;
   };

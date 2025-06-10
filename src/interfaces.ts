@@ -1,12 +1,12 @@
-import Schema from './Schema';
+import type {ISchema} from './schema';
 import { deepObserve } from './mobx/utils';
-
-export type FieldType<T> = keyof T | string | ((d: T) => string);
+import type {IDataProvider} from "./data-providers";
+import type {FieldType, IDisposer} from "./internal";
 
 export type CompareFn = <T>(a: T, b: T, desc?: boolean) => number;
 
 export interface SortOptions1 {
-  compare: CompareFn;
+  compare: <T>(a: T, b: T, desc?: boolean) => number;
   dir?: SortDir;
 }
 
@@ -91,41 +91,12 @@ export interface DataSourceFilters<T> {
   accentFoldingFiltering?: string;
 }
 
-export type AggregateMethods = 'average' | 'count' | 'max' | 'min' | 'sum';
-
-export type AggregateReturn<T> = {
-  [key in keyof T]: { [key in AggregateMethods]: any };
-};
-
-export interface DataSourceGroupItemAggregate<T> {
-  field: KeyOfString<T>;
-  aggregate: AggregateMethods;
-}
-
-export interface GroupItem<T> {
-  field: KeyOfString<T> | string;
-  value: any;
-  items: (T | GroupItem<T>)[];
-  aggregates?: AggregateReturn<T>;
-}
-export interface GroupItem2<T> extends GroupItem<T> {
-  items: T[];
-}
-
-export interface DataSourceGroupItem<T> {
-  field: KeyOfString<T> | string;
-  dir?: SortDir;
-  aggregates?: DataSourceGroupItemAggregate<T>[];
-  compare?: CompareFn;
-  skipItemSorting?: boolean;
-}
-
 export interface IDataSource<
   T extends Record<string, any> = Record<string, any>,
   M extends Record<string, any> = Record<string, any>
 > {
   readonly dataProvider: IDataProvider<T>;
-  readonly schema: Schema<T>;
+  readonly schema: ISchema;
 
   paginator:
     | false
@@ -185,28 +156,7 @@ export interface IDataSource<
   primary: keyof T & string;
 }
 
-export type FetchParams<T extends object> = Partial<
-  Pick<IDataSource<T>, 'filter' | 'sort' | 'page' | 'pageSize' | 'cursor'>
-> & { cursor?: string | number };
-
-export interface ResponseCollection<T extends object = { [k in string]: any }> {
-  data: T[];
-  total?: number;
-  [key: string]: any;
-}
-
-export interface ResponseEntity<T extends object = object> {
-  data: T;
-}
-
-export interface OptionsArg<T extends object = object> {
-  modelFactory?: (obj: T, schema?: Schema<T>) => IModel<T>;
-  paginator?:
-    | false
-    | { page?: number; pageSize?: number; type?: 'page' }
-    | { cursor?: string | number | null; pageSize?: number; type?: 'cursor' };
-  autoSync?: boolean;
-}
+export type ModelFactory<T> = (obj: T, schema?: ISchema) => IModel<T>
 
 export interface IModel<T> {
   [x: string]: any;
@@ -239,22 +189,8 @@ export interface IModel<T> {
   resetProperty(key: keyof T): this;
 
   observe(listener: Parameters<typeof deepObserve>[1]): IDisposer;
-}
 
-export type IDisposer = () => void;
+  getKey(): string | number;
+}
 
 export type IModelT<T> = IModel<T> & T;
-
-export interface IDataProvider<
-  T extends Record<string, any> = Record<string, any>
-> {
-  readonly schema: Schema<T>;
-
-  createDataSource(options?: OptionsArg<T>): IDataSource<T>;
-  fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>>;
-
-  get(primary: string | number): Promise<T | void>;
-  create(model: Partial<T>): Promise<T>;
-  update(primary: T[keyof T], model: Partial<T>): Promise<T>;
-  remove(model: Partial<T> | T[keyof T]): Promise<void>;
-}

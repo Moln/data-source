@@ -1,25 +1,12 @@
-import Schema from './Schema';
-import Model from './Model';
-import Query from './Query';
-import RestProvider from './data-providers/RestProvider';
-import ArrayProvider from './data-providers/ArrayProvider';
-import OfflineServerProvider from './data-providers/OfflineServerProvider';
-import Resources from './Resources';
-import { guid } from './utils';
+export {default as Model} from './Model';
+export {default as Resources} from './Resources';
+export {default as DataSource} from './DataSource';
+export { guid } from './utils';
 
-export * from './interfaces';
-export * from './DataSource';
+export * from './query';
+export type {IModel, IModelT, IDataSource, ModelFactory, OperatorKeys} from './interfaces';
 export * from './Model';
-export * from './Query';
-export * from './Schema';
-export * from './data-providers/RestProvider';
-export {
-  Schema,
-  Model,
-  RestProvider,
-  ArrayProvider,
-  OfflineServerProvider,
-  Query,
-  Resources,
-  guid,
-};
+export * from './schema';
+export * from './data-providers';
+export {config} from './config';
+

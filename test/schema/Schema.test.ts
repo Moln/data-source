@@ -1,9 +1,9 @@
-import { Schema } from '../src';
-import { Test } from './test';
+import { expect, describe, it } from 'vitest'
+import Schema from '../../src/schema/Schema';
 
 describe('DataSource/Schema', () => {
   it('should object readOnly', () => {
-    const schema = new Schema<Test>(require('./test.json'));
+    const schema = new Schema(require('../test.json'));
 
     const obj1 = { id: '123', name: 'Test' };
     schema.validate(obj1);

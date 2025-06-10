@@ -1,43 +1,24 @@
-import {
+import type {
   IDataProvider,
   FetchParams,
-  OptionsArg,
-  ResponseCollection,
-} from '../interfaces';
-import { DataSource, DEFAULT_SCHEMA, guid } from '../';
-import Schema from '../Schema';
-import Query from '../Query';
-import Model from '../Model';
-
-// export function factory<T extends object = object>(url: string): DataSource<T>;
-// export function factory<T extends object = object>(data: T[] | string, schema: BaseRootSchema = DEFAULT_SCHEMA, options: OptionsArg<T> = {}) {
-//     return new DataSource<T>(
-//         data instanceof Array ? new ArrayProvider(data) : new RestProvider(data),
-//         new Schema<T>(schema),
-//         options,
-//     );
-// }
+  Collection,
+} from './interfaces';
+import { guid } from '../utils';
+import Query from '../query/Query';
+import {DEFAULT_PRIMARY_KEY} from "../schema/utils";
 
 export default class ArrayProvider<
   T extends Record<string, any> = Record<string, any>
 > implements IDataProvider<T> {
   constructor(
     public readonly data: T[],
-    public readonly schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)
+    private readonly primary: keyof T | string = DEFAULT_PRIMARY_KEY
   ) {
     data.forEach(item => {
-      if (!item[schema.primary]) {
-        item[schema.primary] = guid() as any;
+      if (!item[primary]) {
+        item[primary] = guid() as any;
       }
     });
-  }
-
-  createDataSource(options?: OptionsArg<T>): DataSource<T> {
-    return new DataSource<T>(this, this.schema, options);
-  }
-
-  get primary(): keyof T {
-    return this.schema.primary as keyof T;
   }
 
   get(primary: string | number): Promise<T | void> {
@@ -46,9 +27,6 @@ export default class ArrayProvider<
   }
 
   create(model: Partial<T>): Promise<T> {
-    if (model instanceof Model) {
-      model = model.toJS();
-    }
     if (!model[this.primary]) {
       model[this.primary] = guid() as any;
     }
@@ -67,13 +45,7 @@ export default class ArrayProvider<
     return row;
   }
 
-  async remove(model: Partial<T>): Promise<void> {
-    const primary = model[this.primary] as T[keyof T];
-
-    if (!primary) {
-      throw new Error(`Primary "${this.primary}" not found.`);
-    }
-
+  async remove(primary: string | number): Promise<void> {
     const index = this.data.findIndex(row => row[this.primary] === primary);
 
     if (index !== -1) {
@@ -81,7 +53,7 @@ export default class ArrayProvider<
     }
   }
 
-  fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> {
+  fetch(params?: FetchParams<T>): Promise<Collection<T>> {
     const page = params?.page;
     const pageSize = params?.pageSize;
 
