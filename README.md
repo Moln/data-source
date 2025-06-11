@@ -1,6 +1,6 @@
 # data-source
 
-[![GitHub Actions: Run tests](https://github.com/moln/data-source/workflows/main/badge.svg)](https://github.com/moln/data-source/actions?query=workflow%3A%22main%22)
+[![GitHub Actions: Run tests](https://github.com/moln/data-source/actions/workflows/main.yml/badge.svg)](https://github.com/Moln/data-source/actions?query=branch%3Amain)
 [![Coverage Status](https://coveralls.io/repos/github/Moln/data-source/badge.svg?branch=master)](https://coveralls.io/github/Moln/data-source?branch=master)
 [![GitHub license](https://img.shields.io/github/license/Moln/data-source)](https://github.com/Moln/data-source)
 [![npm](https://img.shields.io/npm/v/@moln/data-source.svg)](https://www.npmjs.com/@moln/data-source)
@@ -27,7 +27,7 @@ yarn add @moln/data-source
 
 ## 使用
 
-```
+```js
 const resources = new Resources()
 const dataSource = resources.create("/api/users")
 
