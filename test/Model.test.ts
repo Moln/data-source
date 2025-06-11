@@ -146,7 +146,7 @@ describe('DataSource/Model', () => {
     m.set('date2', d1);
     expect(m.date2).toBe(d1);
 
-    m.set('date', new Date('2021/01/01 00:00:00'));
+    m.set('date', new Date('2020-12-31T16:00:00.000Z'));
     expect(m.time).toBe('2020-12-31T16:00:00.000Z');
     expect(m.date.toISOString()).toBe('2020-12-31T16:00:00.000Z');
 
