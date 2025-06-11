@@ -1,22 +1,23 @@
 import {
   entries,
-  IArrayDidChange,
-  IMapDidChange,
   intercept,
-  IObjectDidChange,
-  IObjectWillChange,
   isObservableArray,
   isObservableMap,
   isObservableObject,
-  IValueWillChange,
   observe,
   values,
+} from 'mobx';
+import type {
+  IArrayDidChange,
+  IMapDidChange,
+  IObjectDidChange,
+  IObjectWillChange,
+  IValueWillChange,
   IArrayWillChange,
   IArrayWillSplice,
   IInterceptor,
 } from 'mobx';
-
-import { IDisposer } from '../interfaces';
+import type { IDisposer } from '../internal';
 
 type IChange = IObjectDidChange | IArrayDidChange | IMapDidChange;
 

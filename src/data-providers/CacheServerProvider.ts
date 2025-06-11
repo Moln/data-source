@@ -1,30 +1,26 @@
-import {
-  ArrayProvider,
+import ArrayProvider from './ArrayProvider';
+import type {
   IDataProvider,
-  DataSource,
   FetchParams,
-  OptionsArg,
-  ResponseCollection,
-} from '../index';
+  Collection,
+} from './interfaces';
+import {DEFAULT_PRIMARY_KEY} from "../schema/utils";
 
-export default class OfflineServerProvider<
+export default class CacheServerProvider<
   T extends Record<string, any> = Record<string, any>
 > implements IDataProvider<T> {
   private data: ArrayProvider<T> | null = null;
 
-  readonly schema = this.serverProvider.schema;
+  constructor(
+      private readonly serverProvider: IDataProvider<T>,
+      private readonly primary: keyof T | string = DEFAULT_PRIMARY_KEY
+  ) {}
 
-  constructor(private serverProvider: IDataProvider<T>) {}
-
-  createDataSource(options?: OptionsArg<T>): DataSource<T> {
-    return new DataSource<T>(this, this.schema, options);
-  }
-
-  async fetch(params?: FetchParams<T>): Promise<ResponseCollection<T>> {
+  async fetch(params?: FetchParams<T>): Promise<Collection<T>> {
     if (!this.data) {
       const result = await this.serverProvider.fetch();
 
-      this.data = new ArrayProvider<T>(result.data);
+      this.data = new ArrayProvider<T>(result.data, this.primary);
     }
 
     return this.data.fetch(params);
@@ -44,8 +40,8 @@ export default class OfflineServerProvider<
     return this.data.get(primary);
   }
 
-  async remove(model: Partial<T>): Promise<void> {
-    await this.serverProvider.remove(model);
+  async remove(primary: string | number): Promise<void> {
+    await this.serverProvider.remove(primary);
     this.data = null;
   }
 

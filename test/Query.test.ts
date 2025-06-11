@@ -1,8 +1,8 @@
+import { expect, describe, it } from 'vitest'
 import { Query } from '../src';
-import { GroupItem } from '../src/interfaces';
 
 describe('Query', () => {
-  function genData() {
+  function genData(): Record<string, any>[] {
     const rs = [];
     for (let i = 1; i <= 20; i++) {
       const time = new Date();
@@ -142,8 +142,7 @@ describe('Query', () => {
     expect('field' in q3.toArray()[0].items[0]).toBeTruthy();
     expect('items' in q3.toArray()[0].items[0]).toBeTruthy();
     expect(
-      ((q3.toArray()[0].items[0] as GroupItem<typeof data[0]>)
-        .items as typeof data)[0].id
+      ((q3.toArray()[0].items[0]).items as typeof data)[0].id
     ).toBeLessThan(11);
   });
 

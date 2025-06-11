@@ -1,12 +1,13 @@
 import { observable } from 'mobx';
 import { deepIntercept, deepObserve } from '../../src/mobx/utils';
+import { expect, describe, it, vi } from 'vitest'
 
 describe('mobx/utils', () => {
   it('deepObserve', () => {
     const obj = { a: 1, b: 2, c: { c1: 'c1', c2: [1, 2, 3] } };
     const obObj = observable(obj);
 
-    const mockCall = jest.fn((change, path, root) => {});
+    const mockCall = vi.fn((change, path, root) => {});
 
     deepObserve(obObj, mockCall);
 
@@ -39,7 +40,7 @@ describe('mobx/utils', () => {
     const obj = { a: 1, b: 2, c: { c1: 'c1', c2: [1, 2, 3] } };
     const obObj = observable(obj);
 
-    const mockCall = jest.fn((change, path: string[], root: object) => {
+    const mockCall = vi.fn((change, path: string[], root: object) => {
       if (change.newValue === 2) {
         return null;
       }

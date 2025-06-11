@@ -1,6 +1,7 @@
 import Axios from 'axios';
 import { RestProvider } from '../../src';
 import MockAdapter from 'axios-mock-adapter';
+import { expect, describe, it } from 'vitest'
 // This sets the mock adapter on the default instance
 
 describe('RestProvider', () => {
@@ -45,6 +46,6 @@ describe('RestProvider', () => {
     const rs3 = await ds.update(2, { name: 'bar2' });
     expect(rs3).toEqual({ id: 2, name: 'bar2' });
 
-    await ds.remove({ id: 2 });
+    await ds.remove(2);
   });
 });

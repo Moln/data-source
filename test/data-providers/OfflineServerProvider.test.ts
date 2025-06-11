@@ -1,13 +1,14 @@
-import { ArrayProvider, OfflineServerProvider, RestProvider } from '../../src';
+import { ArrayProvider, CacheServerProvider, RestProvider } from '../../src';
 import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { expect, describe, it } from 'vitest'
 
 describe('OfflineServerProvider', () => {
   it('OfflineServerProvider', async () => {
     const http = Axios.create();
 
     const mock = new MockAdapter(http);
-    mock.onGet('/users').reply(config => {
+    mock.onGet('/users').reply(() => {
       const data = [];
       for (let i = 1; i <= 10; i++) {
         data.push({
@@ -46,7 +47,7 @@ describe('OfflineServerProvider', () => {
     });
     mock.onDelete('/users/2').reply(204);
 
-    const ds = new OfflineServerProvider(
+    const ds = new CacheServerProvider(
       new RestProvider<{ id: number; name: string }>('/users', http)
     );
 
@@ -62,11 +63,11 @@ describe('OfflineServerProvider', () => {
     const rs4 = await ds.create({ name: 'foo' });
     expect(rs4).toEqual({ id: 11, name: 'foo' });
 
-    await ds.remove({ id: 2 });
+    await ds.remove(2);
   });
 
   it('should clear data', async () => {
-    const dp = new OfflineServerProvider(
+    const dp = new CacheServerProvider(
       new ArrayProvider([{ id: 1, name: 'foo' }])
     );
     expect((dp as any).data).toBeNull();

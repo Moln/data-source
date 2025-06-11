@@ -1,27 +1,18 @@
-import Schema, { DEFAULT_SCHEMA } from './Schema';
-import { IModel, IModelT } from './interfaces';
+import Schema from './schema/Schema';
+import type { IModel, IModelT } from './interfaces';
 import { observable, runInAction, toJS } from 'mobx';
 import { guid } from './utils';
 import { deepObserve, deepIntercept } from './mobx/utils';
+import type {ISchema} from "./schema/interfaces";
 
 export const PROPERTIES = Symbol('dataSource.model');
 
-// export function schema<T>(schema: object): ClassDecorator {
-//     return (target: Function) => {
-//         if (target === Model) {
-//             target.prototype[PROPERTIES].schema = new Schema(schema);
-//             return target as any;
-//         }
-//
-//         throw new TypeError('Invalid decorator target');
-//     }
-// }
 
 interface ModelProperties<T extends object> {
   uuid: string;
   model: T;
   obModel: T;
-  schema: Schema<T>;
+  schema: ISchema;
   // dirtyFields: Map<keyof T, T[keyof T] | undefined>;
   dirtyFields: (keyof T)[];
 }
@@ -60,17 +51,17 @@ function isSetter(obj: object, key: string): boolean {
 export default class Model<T extends object> implements IModel<T> {
   private readonly [PROPERTIES]: ModelProperties<T>;
 
-  constructor(model: T, schema: Schema<T> = new Schema<T>(DEFAULT_SCHEMA)) {
+  constructor(model: T, schema: ISchema = new Schema()) {
     // makeObservable(this, {
     //     submit: action,
     //     reset: action,
     //     resetProperty: action,
     // })
 
-    const validate = schema.getSchema();
-    if (validate && !validate(model)) {
+    const result = schema.validate(model);
+    if (!result.ok()) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('Error model value: ', validate.errors, model);
+        console.warn('Error model value: ', result.errors, model);
       }
       throw new Error('Error model value: ' + JSON.stringify(model));
     }
@@ -108,22 +99,6 @@ export default class Model<T extends object> implements IModel<T> {
         properties.dirtyFields.push(name);
       }
     });
-    // observe(this, (change) => {
-    //     console.log('observe', change)
-    //     const name: keyof T = change.name as keyof T;
-    //     if (typeof name !== "string") return;
-    //     if (! properties.dirtyFields.has(name)) {
-    //         switch (change.type) {
-    //             case "add":
-    //                 properties.dirtyFields.set(name, undefined );
-    //                 break;
-    //             case "update":
-    //             case "remove":
-    //                 properties.dirtyFields.set(name, change.oldValue);
-    //                 break;
-    //         }
-    //     }
-    // });
 
     deepIntercept(obModel, (change, path) => {
       if ('name' in change) {
@@ -135,13 +110,12 @@ export default class Model<T extends object> implements IModel<T> {
       if (schema.isReadOnly(path)) {
         return null;
       }
-      switch (change.type) {
-        case 'update':
-          const validate = schema.getSchema(path);
-          if (validate && !validate(change.newValue)) {
-            console.warn('Error model value:', validate, path);
-            return null;
-          }
+      if (change.type == 'update') {
+        const result = schema.validate(change.newValue, path);
+        if (! result.ok()) {
+          console.warn('Error model value:', result, path);
+          return null;
+        }
       }
 
       return change;
@@ -195,7 +169,7 @@ export default class Model<T extends object> implements IModel<T> {
 
     runInAction(() => {
       let target: Record<any, any> = model;
-      let lastKey = _keys.pop()!;
+      const lastKey = _keys.pop()!;
       _keys.forEach(key => {
         if (target[key] === undefined || target[key] === null) {
           target[key] = {};
@@ -271,6 +245,10 @@ export default class Model<T extends object> implements IModel<T> {
     return obj;
   }
 
+  getKey() {
+    return this.get(this[PROPERTIES].schema.primary) as string | number;
+  }
+
   observe(listener: Parameters<typeof deepObserve>[1]) {
     return deepObserve(this[PROPERTIES].obModel, listener);
   }
@@ -278,7 +256,7 @@ export default class Model<T extends object> implements IModel<T> {
 
 export function createModel<T extends object>(
   obj: T,
-  schema?: Schema<T>
+  schema?: Schema
 ): IModelT<T> {
   return new Model<T>(obj, schema) as any;
 }

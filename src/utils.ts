@@ -1,4 +1,4 @@
-import { DataSourceFilterItem, DataSourceFilters } from './interfaces';
+import type { DataSourceFilterItem, DataSourceFilters } from './interfaces';
 
 export function isFunction(func: any): func is Function {
   return 'function' == typeof func;
@@ -22,100 +22,26 @@ export function isEmptyObject(obj: object): boolean {
   return true;
 }
 
-// Core
-
-function wrapExpression(members: string[], paramName: string): string {
-  let result = paramName || 'd';
-  let count = 1;
-
-  for (let idx = 0, length = members.length; idx < length; idx++) {
-    let member = members[idx];
-    if (member !== '') {
-      const index = member.indexOf('[');
-
-      if (index !== 0) {
-        if (index === -1) {
-          member = '.' + member;
-        } else {
-          count++;
-          member =
-            '.' +
-            member.substring(0, index) +
-            ' || {})' +
-            member.substring(index);
-        }
+export const accessor = {
+  get: (obj: any, keys: (string | number)[]): any => {
+    let target = obj
+    for (const key of keys) {
+      if (target === undefined || target === null) {
+        return undefined
       }
-
-      count++;
-      result += member + (idx < length - 1 ? ' || {})' : ')');
+      target = target[key]
     }
-  }
-  return new Array(count).join('(') + result;
-}
-export function expr(expression: string, paramName?: string): string;
-export function expr(
-  expression: string,
-  safe?: string | boolean,
-  paramName?: string
-): string {
-  if (typeof safe === 'string') {
-    paramName = safe;
-    safe = false;
-  }
 
-  paramName = paramName || 'd';
-
-  if (expression && expression.charAt(0) !== '[') {
-    expression = '.' + expression;
-  }
-
-  if (safe) {
-    expression = expression.replace(/"([^.]*)\.([^"]*)"/g, '"$1_$DOT$_$2"');
-    expression = expression.replace(/'([^.]*)\.([^']*)'/g, "'$1_$DOT$_$2'");
-    expression = wrapExpression(expression.split('.'), paramName);
-    expression = expression.replace(/_\$DOT\$_/g, '.');
-  } else {
-    expression = paramName + expression;
-  }
-
-  return expression;
-}
-
-interface AccessorCache {
-  [key: string]: Function;
-}
-
-const getterCache: AccessorCache = {};
-const setterCache: AccessorCache = {};
-
-export function getter<T>(
-  expression: keyof T | string,
-  paramName?: string
-): (data: T) => any {
-  const key = expression + (paramName || '');
-  return (getterCache[key] =
-    getterCache[key] ||
-    new Function('d', 'return ' + expr(expression as string, paramName))) as (
-    data: T
-  ) => any;
-}
-
-export function setter<T>(
-  expression: keyof T | string
-): (data: T, value: any) => void {
-  return (setterCache[expression as string] =
-    setterCache[expression as string] ||
-    new Function('d,value', expr(expression as string) + '=value')) as (
-    data: T,
-    value: any
-  ) => void;
-}
-
-export function accessor<T>(expression: keyof T | string) {
-  return {
-    get: getter<T>(expression),
-    set: setter<T>(expression),
-  };
+    return target
+  },
+  set: (obj: Record<string, any>, keys: string[], value: any) => {
+    if (! keys.length) {
+      return ;
+    }
+    const lastKey = keys[keys.length - 1]
+    const parent = accessor.get(obj, keys.slice(0, -1))!
+    parent[lastKey] = value
+  },
 }
 
 export function toFilter<T extends object>(
@@ -132,8 +58,8 @@ export function toFilter<T extends object>(
 
 export function guid() {
   let id = '',
-    random,
-    chars = 'abcdef';
+    random;
+  const chars = 'abcdef';
 
   id += chars[Math.floor(Math.random() * Math.floor(chars.length))];
 
