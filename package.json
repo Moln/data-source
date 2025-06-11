@@ -1,6 +1,6 @@
 {
   "name": "@moln/data-source",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": "Moln",
   "license": "MIT",
   "files": [
@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "preview": "vite preview",

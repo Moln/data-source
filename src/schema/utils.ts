@@ -39,7 +39,8 @@ export class ValidatorError extends Error {
         message: string,
         public readonly keys: string[],
         public readonly value: any,
-        public readonly schema: JSONSchema7
+        public readonly schema: JSONSchema7,
+        public readonly keyword: string
     ) {
         super(message);
     }

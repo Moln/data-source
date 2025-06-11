@@ -22,7 +22,7 @@ export const validators: Validator[] = [
             accessor.set(root, keys, data)
 
             if (! types.includes(getType(data, types.includes("number")))) {
-                errors.add(new ValidatorError(`Type must be: ${types.toString()}`, keys, data, schema))
+                errors.add(new ValidatorError(`Type must be: ${types.toString()}`, keys, data, schema, 'type'))
             }
         },
         name: 'type',
@@ -35,7 +35,7 @@ export const validators: Validator[] = [
                 .filter((key) => !(properties[key]?.default) && (data[key] === undefined || data[key] === null));
 
             if (errorKeys.length) {
-                errors.add(new ValidatorError(`(${errorKeys.join(', ')}) is required`, keys, data, schema))
+                errors.add(new ValidatorError(`(${errorKeys.join(', ')}) is required`, keys, data, schema, 'required'))
             }
         },
         types: ["object"],
