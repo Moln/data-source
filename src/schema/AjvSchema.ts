@@ -1,12 +1,11 @@
 import Ajv from 'ajv';
-import { guid } from '../utils';
+import {accessor, guid} from '../utils';
 import type {BaseRootSchema, ISchema, ISchemaList} from "./interfaces";
-import {DEFAULT_PRIMARY_KEY, Errors} from "./utils";
+import {DEFAULT_PRIMARY_KEY, DEFAULT_SCHEMA, Errors, ValidatorError} from "./utils";
 import type {JSONSchema7} from "json-schema";
 
 export default class AjvSchema implements ISchema {
 
-    public readonly validator: NonNullable<ReturnType<typeof Ajv.prototype.getSchema>>;
 
     public readonly schema: BaseRootSchema;
 
@@ -14,8 +13,7 @@ export default class AjvSchema implements ISchema {
         private readonly ajv: Ajv,
         private schemaName: string = guid()
     ) {
-        this.validator = ajv.getSchema(schemaName)!;
-        this.schema = this.validator.schema as BaseRootSchema;
+        this.schema = (this.getSchema(schemaName)?.schema || DEFAULT_SCHEMA) as BaseRootSchema;
     }
 
     validate(data: any, keys?: string[]): Errors {
@@ -25,9 +23,17 @@ export default class AjvSchema implements ISchema {
             return errors
         }
         const result = validator(data)
-        console.log(result)
+        if (result) {
+            return errors
+        }
+        errors.errors = validator.errors!.map((err) => {
+            const keys = err.instancePath.split("/")
+            keys.shift()
+            const value = accessor.get(data, keys)
+            const schema = this.getSchema(keys)?.schema as JSONSchema7
+            return new ValidatorError(err.message!, keys, value, schema, err.keyword)
+        })
 
-        // todo impl it
         return errors
     }
 
