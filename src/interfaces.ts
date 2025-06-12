@@ -154,6 +154,8 @@ export interface IDataSource<
   fetchInit(): Promise<IModelT<T>[]>;
 
   primary: keyof T & string;
+
+  submit(): void
 }
 
 export type ModelFactory<T> = (obj: T, schema?: ISchema) => IModel<T>
