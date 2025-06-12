@@ -1,6 +1,6 @@
 {
   "name": "@moln/data-source",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "author": "Moln",
   "license": "MIT",
   "files": [
@@ -13,7 +13,7 @@
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "preview": "vite preview",
-    "prepare": "vite build",
+    "prepare": "npm run lint && npm run build",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },

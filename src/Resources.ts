@@ -2,12 +2,19 @@ import RestProvider from './data-providers/RestProvider';
 import axios, {type AxiosInstance} from 'axios';
 import DataSource from "./DataSource";
 import CacheServerProvider from "./data-providers/CacheServerProvider";
-import type {ISchemaList} from "./schema";
+import type {ISchema, ISchemaList} from "./schema";
 import {SchemaList} from "./schema";
 import ArrayProvider from "./data-providers/ArrayProvider";
 import type {OptionsArg} from "./internal";
+import {isArray} from "./utils.ts";
+import type {IDataProvider} from "./data-providers";
 
-type ExtendOptions = { cacheable?: boolean, schemaId?: string }
+type ExtendOptions = {
+    cacheable?: boolean,
+    schema?: ISchema,
+    schemaId?: string,
+    pathParams?: string | number | Record<string, string | number>,
+}
 type CreateOptions<T extends Record<string, any> = Record<string, any>> =
     ConstructorParameters<typeof RestProvider<T>>[2]
     & ExtendOptions
@@ -21,43 +28,58 @@ export default class Resources {
 
     create<T extends Record<string, any> = Record<string, any>>(
         path: string,
-        pathValues?: string | number | Record<string, string | number>,
-        options?: CreateOptions<T>
+        options: CreateOptions<T> = {}
     ) {
+        const {schemaId, cacheable} = options
+        let {pathParams = {}} = options
+        if (! schemaId) {
+            options.schemaId = path
+        }
+        const schema = this.getSchema(options)
+        options.schema = schema
 
-        if (pathValues && typeof pathValues !== 'object') {
-            pathValues = {id: pathValues};
+        if (pathParams && typeof pathParams !== 'object') {
+            pathParams = {id: pathParams};
         }
 
-        Object.entries(pathValues || {}).forEach(([key, value]) => {
+        Object.entries(pathParams).forEach(([key, value]) => {
             path = path.replace('{' + key + '}', String(value));
         });
 
         const rest = new RestProvider<T>(`/${path}`, this.http, options);
-        if (options?.cacheable === true) {
-            const schema = this.schemas.get(options?.schemaId || path)
+        if (cacheable === true) {
             return new CacheServerProvider(rest, schema.primary)
         }
 
         return rest
     }
 
-    public createDataSource<T extends Record<string, any> = Record<string, any>>(
-        path: string,
-        pathValues?: string | number | Record<string, string | number>,
-        options?: CreateOptions<T> & OptionsArg<T>
-    ) {
-        const provider = this.create(path, pathValues, options)
-        const schema = this.schemas.get(path)
-        return new DataSource<T>(provider, {schema, ...options});
+    private getSchema<T extends Record<string, any> = Record<string, any>>({schemaId, schema}: CreateOptions<T> & OptionsArg<T>) {
+        if (schema) {
+            return schema
+        } else {
+            return this.schemas.get(schemaId!)
+        }
     }
 
-    public createDataSourceByArray<T extends Record<string, any> = Record<string, any>>(
-        data: T[],
-        options?: OptionsArg<T> & {schemaId?: string}
+    public createDataSource<T extends Record<string, any> = Record<string, any>>(
+        pathOrData: string | T[],
+        options: CreateOptions<T> & OptionsArg<T> = {}
     ) {
-        const provider = new ArrayProvider(data)
-        const schema = this.schemas.get(options?.schemaId || "")
-        return new DataSource<T>(provider, {schema, ...options});
+        let provider: IDataProvider<T>;
+        if (isArray(pathOrData)) {
+            options.schema = this.getSchema(options)
+            provider = this.createByArray(pathOrData, options);
+        } else {
+            provider = this.create(pathOrData, options);
+        }
+        return new DataSource<T>(provider, options);
+    }
+
+    public createByArray<T extends Record<string, any> = Record<string, any>>(
+        data: T[],
+        options: OptionsArg<T> & {schemaId?: string} = {}
+    ) {
+        return new ArrayProvider(data, this.getSchema(options).primary)
     }
 }

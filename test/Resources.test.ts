@@ -2,21 +2,31 @@ import {CacheServerProvider, Resources, RestProvider} from '../src';
 import Axios from 'axios';
 import { expect, describe, it, vi } from 'vitest'
 import MockAdapter from "axios-mock-adapter";
+import type {JSONSchema7} from "json-schema";
 
 describe('Resources', () => {
   it('get resource', () => {
-    const http = Axios.create();
-    const resources = new Resources(http);
-    const provider = resources.create('users');
+    const resources = new Resources();
+    const schema = require('./test.json')
+    const schema2: JSONSchema7 = {
+      type: "string"
+    }
+    resources.schemas.add('users', schema)
+    resources.schemas.add('user/users/{user_id}/attrs/{key}', schema2)
+    const p1 = resources.create('users');
+    expect(p1).toBeInstanceOf(RestProvider);
+    const p2 = resources.createDataSource('users');
+    expect(p2.schema.schema).toBe(schema);
+    const p3 = resources.createDataSource('undefined');
+    expect(p3.schema).toBe(resources.schemas.get("not-found"));
 
-    expect(provider).toBeInstanceOf(RestProvider);
+    const u = resources.createDataSource('user/users/{user_id}/attrs/{key}', {pathParams: {
+        user_id: 123,
+        key: 'name',
+      }});
 
-    const u = resources.create('user/users/{user_id}/attrs/{key}', {
-      user_id: 123,
-      key: 'name',
-    });
-
-    expect((u as any).url).toBe('/user/users/123/attrs/name');
+    expect(u.schema.schema).toBe(schema2);
+    expect((u.dataProvider as any).url).toBe('/user/users/123/attrs/name');
   });
 
   const data = [
@@ -62,7 +72,7 @@ describe('Resources', () => {
     });
     const httpGetSpy = vi.spyOn(http, 'get')
     const resources = new Resources(http);
-    const ds = resources.createDataSource("users", {}, {cacheable: true})
+    const ds = resources.createDataSource("users", {cacheable: true})
     await ds.fetch()
     expect(ds.dataProvider).toBeInstanceOf(CacheServerProvider)
     expect(ds.data.length).toBe(2);
@@ -74,7 +84,7 @@ describe('Resources', () => {
   it('should create Array DataSource', async () => {
 
     const resources = new Resources();
-    const ds = resources.createDataSourceByArray(data)
+    const ds = resources.createDataSource(data)
     await ds.fetch()
 
     expect(ds.data.length).toBe(2);

@@ -53,7 +53,7 @@ const useDataSource = (resource) => {
     return useMemo(() => (new Resources()).createDataSource(`/api/${resource}`), []);
     
     // Array data source
-    // return useMemo(() => (new Resources()).createDataSourceByArray([
+    // return useMemo(() => (new Resources()).createDataSource([
     //     {id: 1, name: 'Tom', score: 3},
     //     {id: 2, name: 'Jerry', score: 4},
     // ]), []);
