@@ -30,7 +30,8 @@ export default class Resources {
         path: string,
         options: CreateOptions<T> = {}
     ) {
-        let {pathParams = {}, schemaId, cacheable} = options
+        const {schemaId, cacheable} = options
+        let {pathParams = {}} = options
         if (! schemaId) {
             options.schemaId = path
         }
