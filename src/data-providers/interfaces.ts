@@ -19,3 +19,7 @@ export interface Collection<T extends object = { [k in string]: any }> {
     total?: number;
     [key: string]: any;
 }
+
+export interface ParamsNormalization<T extends Record<string, any>> {
+    (params: FetchParams<T>): object
+}

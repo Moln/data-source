@@ -62,10 +62,9 @@ export default class Resources {
         }
     }
 
-    public createDataSource<T extends Record<string, any> = Record<string, any>>(
-        pathOrData: string | T[],
-        options: CreateOptions<T> & OptionsArg<T> = {}
-    ) {
+    public createDataSource<T extends Record<string, any> = Record<string, any>>(path: string, options?: CreateOptions<T> & OptionsArg<T>): DataSource<T>
+    public createDataSource<T extends Record<string, any> = Record<string, any>>(data: T[], options?: {schemaId?: string} & OptionsArg<T>): DataSource<T>
+    public createDataSource<T extends Record<string, any> = Record<string, any>>(pathOrData: string | T[], options: CreateOptions<T> & OptionsArg<T> = {}) {
         let provider: IDataProvider<T>;
         if (isArray(pathOrData)) {
             options.schema = this.getSchema(options)

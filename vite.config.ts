@@ -11,7 +11,6 @@ export default defineConfig({
         charset: 'utf8',
     },
     build: {
-        minify: false,
         sourcemap: true,
         lib: {
             entry: resolve(__dirname, 'src/index'),

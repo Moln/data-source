@@ -383,6 +383,23 @@ export default class DataSource<
     return this.data.find(item => item[this.primary] === id);
   }
 
+  submit() {
+    const changes = this.changes;
+
+    for (const model of changes.added) {
+      model.submit();
+    }
+    for (const model of changes.updated) {
+      model.submit();
+    }
+
+    this.originData = this.toJS();
+
+    changes.added = [];
+    changes.updated = [];
+    changes.removed = [];
+  }
+
   async sync() {
     const changes = this.changes;
     const submitModel = (model: IModelT<T>, newModel: T) => {

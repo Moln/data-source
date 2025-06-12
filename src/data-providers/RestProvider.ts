@@ -2,11 +2,11 @@ import type {
   IDataProvider,
   FetchParams,
   Collection,
+  ParamsNormalization,
 } from './interfaces';
 import axios, {type AxiosInstance, type AxiosResponse} from 'axios';
 import {commonConfigs} from "../config";
 
-type NormalizeParams<T extends object> = (params: FetchParams<T>) => object;
 
 export function normalizeJsonApiParams<T extends object>(
   params: FetchParams<T>
@@ -42,7 +42,7 @@ export function normalizeRootFilterParams<T extends object>(
 }
 
 interface Options<T extends object> {
-  normalizeParams: NormalizeParams<T>,
+  normalizeParams: ParamsNormalization<T>,
   normalizeCollectionResponse: (response: AxiosResponse) => Collection<T>
   normalizeEntityResponse: (response: AxiosResponse) => T
 }
