@@ -13,7 +13,7 @@ export default class AjvSchema implements ISchema {
         private readonly ajv: Ajv,
         private schemaName: string = guid()
     ) {
-        this.schema = (this.getSchema(schemaName)?.schema || DEFAULT_SCHEMA) as BaseRootSchema;
+        this.schema = (this.getSchema()?.schema || DEFAULT_SCHEMA) as BaseRootSchema;
     }
 
     validate(data: any, keys?: string[]): Errors {

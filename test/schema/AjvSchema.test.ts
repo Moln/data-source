@@ -10,8 +10,9 @@ describe('DataSource/Schema', () => {
         coerceTypes: true,
     });
 
+    const userSchema = require('../test.json')
     addFormats(ajv)
-    ajv.addSchema(require('../test.json'), "users")
+    ajv.addSchema(userSchema, "users")
 
     it('should object readOnly', () => {
         const schema = new AjvSchema(ajv, 'users');
@@ -21,6 +22,7 @@ describe('DataSource/Schema', () => {
         expect(result.ok()).toBeTruthy()
         const rs = obj1 as typeof obj1 & { created_at: Date };
 
+        expect(schema.schema).toBe(userSchema);
         expect(rs).not.toBeFalsy();
         expect(rs).toBe(obj1);
 
