@@ -1,9 +1,6 @@
 import type RestProvider from "./data-providers/RestProvider";
 
-interface CommonConfig {
-    restProvider: NonNullable<ConstructorParameters<typeof RestProvider<any>>[2]>
-}
-export const commonConfigs: CommonConfig = {
+export const commonConfigs = {
     restProvider: {
         normalizeParams: (params) => ({
             filter: params?.filter,
@@ -14,15 +11,17 @@ export const commonConfigs: CommonConfig = {
         }),
         normalizeCollectionResponse: (response)=> response.data,
         normalizeEntityResponse: (response) => response.data
+    } as NonNullable<ConstructorParameters<typeof RestProvider<any>>[2]>,
+    pagination: {
+        defaultPageSize: 20,
     }
 }
 
-export const config  = (override: Partial<CommonConfig>) => {
+type CommonConfig = typeof commonConfigs
+
+export const config  = (override: {[P in keyof CommonConfig]?: Partial<CommonConfig[P]>} ) => {
     (Object.entries(override) as [keyof CommonConfig, any][])
         .forEach(([key, configs]) => {
-            commonConfigs[key] = {
-                ...commonConfigs[key],
-                ...configs,
-            }
+            Object.assign(commonConfigs[key], configs)
         })
 }

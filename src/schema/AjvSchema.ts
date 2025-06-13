@@ -1,4 +1,4 @@
-import Ajv from 'ajv';
+import {Ajv} from 'ajv';
 import {accessor, guid} from '../utils';
 import type {BaseRootSchema, ISchema, ISchemaList} from "./interfaces";
 import {DEFAULT_PRIMARY_KEY, DEFAULT_SCHEMA, Errors, ValidatorError} from "./utils";
