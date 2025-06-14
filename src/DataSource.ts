@@ -29,6 +29,7 @@ import type {ISchema} from './schema'
 import type {IDataProvider} from "./data-providers";
 import type {OptionsArg} from "./internal";
 import {isArray} from "./utils";
+import {commonConfigs} from "./config";
 
 
 interface Changes<T> {
@@ -36,23 +37,17 @@ interface Changes<T> {
   removed: IModelT<T>[];
   updated: IModelT<T>[];
 }
-const defaultPage = {
-  page: 1,
-  pageSize: 20,
-  type: 'page' as const,
-};
 
 export default class DataSource<
   T extends Record<string, any> = Record<string, any>,
   M extends Record<string, any> = Record<string, any>
 > implements IDataSource<T, M> {
-  static defaultPageSize = defaultPage.pageSize;
 
   private lastFetchProcess?: Promise<IModelT<T>[]>;
 
   data: IModelT<T>[] = observable.array<IModelT<T>>([]);
   meta: M = {} as M;
-  paginator: IDataSource<T>['paginator'] = { ...defaultPage };
+  paginator: IDataSource<T>['paginator'];
   total = 0;
   filter: DataSourceFilters<T> | null = null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null = null;
@@ -64,37 +59,45 @@ export default class DataSource<
   };
   private originData: T[] = [];
 
-  private readonly modelFactory: ModelFactory<T> = createModel as ModelFactory<T>;
+  private readonly modelFactory: ModelFactory<T>;
 
-  private readonly autoSync: boolean = false;
+  private readonly autoSync: boolean;
+
   public readonly schema: ISchema
 
   constructor(
     public readonly dataProvider: IDataProvider<T>,
     options: OptionsArg<T> = {}
   ) {
-    this.schema = options?.schema || new Schema();
-    const paginator = options.paginator;
-    if (paginator !== undefined) {
-      if (paginator === false) {
-        this.paginator = false;
-      } else if (paginator.type === 'cursor') {
-        this.paginator = {
-          pageSize: defaultPage.pageSize,
-          cursor: null,
-          ...(paginator as { type: 'cursor' }),
-        };
-      } else {
-        this.paginator = {
-          ...defaultPage,
-          ...(paginator as { type: 'page' }),
-        };
+    const {
+      paginator = {},
+      modelFactory = createModel as ModelFactory<T>,
+      autoSync = false,
+      schema = new Schema(),
+    } = options;
+    const pageSize = commonConfigs.pagination.defaultPageSize
+
+    if (paginator === false) {
+      this.paginator = false;
+    } else if (paginator.type === 'cursor') {
+      this.paginator = {
+        type: 'cursor',
+        pageSize,
+        cursor: null,
+        ...paginator,
+      };
+    } else {
+      this.paginator = {
+        page: 1,
+        pageSize,
+        ...(paginator),
+        type: 'page',
       }
     }
-    if (options.modelFactory) {
-      this.modelFactory = options.modelFactory;
-    }
-    this.autoSync = options.autoSync || false;
+
+    this.schema = schema;
+    this.modelFactory = modelFactory;
+    this.autoSync = autoSync;
 
     makeObservable(this, {
       data: observable,
