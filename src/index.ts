@@ -1,7 +1,7 @@
 export {default as Model} from './Model';
 export {default as Resources} from './Resources';
 export {default as DataSource} from './DataSource';
-export { guid } from './utils';
+export { guid, accessor } from './utils';
 
 export * from './query';
 export type {IModel, IModelT, IDataSource, ModelFactory, OperatorKeys} from './interfaces';

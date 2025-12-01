@@ -1,6 +1,6 @@
 {
   "name": "@moln/data-source",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "author": "Moln",
   "license": "MIT",
   "files": [
@@ -21,10 +21,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/data-source.mjs",
-      "require": "./dist/data-source.umd.js"
+      "require": "./dist/data-source.js"
+    },
+    "./schema/AjvSchema": {
+      "types": "./dist/schema/AjvSchema.d.ts",
+      "import": "./dist/ajv.mjs",
+      "require": "./dist/ajv.js"
     }
   },
-  "main": "dist/data-source.umd.js",
+  "main": "dist/data-source.js",
   "types": "dist/index.d.ts",
   "module": "./dist/data-source.mjs",
   "peerDependencies": {

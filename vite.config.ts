@@ -13,17 +13,23 @@ export default defineConfig({
     build: {
         sourcemap: true,
         lib: {
-            entry: resolve(__dirname, 'src/index'),
-            name: 'data-source',
+            entry: {
+                'data-source': resolve(__dirname, 'src/index'),
+                ajv: resolve(__dirname, 'src/schema/AjvSchema'),
+            },
+            // name: 'ds',
             // the proper extensions will be added
-            fileName: 'data-source',
-            formats: ["es", "umd"]
+            // fileName: 'data-source',
+            // formats: ["es", "umd"]
         },
         rollupOptions: {
             // external: ['mobx', 'ajv', 'axios'],
             external: (id) => {
                 return !id.startsWith(".") && !isAbsolute(id);
             },
+            output: {
+                exports: "named"
+            }
         },
     },
 })
