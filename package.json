@@ -1,6 +1,6 @@
 {
   "name": "@moln/data-source",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": "Moln",
   "license": "MIT",
   "files": [
@@ -27,6 +27,11 @@
       "types": "./dist/schema/AjvSchema.d.ts",
       "import": "./dist/ajv.mjs",
       "require": "./dist/ajv.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "schema/AjvSchema": ["./dist/schema/AjvSchema.d.ts"]
     }
   },
   "main": "dist/data-source.js",
