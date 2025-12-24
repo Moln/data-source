@@ -111,6 +111,7 @@ export interface IDataSource<
   filter: DataSourceFilters<T> | null;
   sort: (SortOptions1 | SortOptions2<T>)[] | null;
   readonly loading: boolean;
+  readonly syncing: boolean;
   loadings: {
     fetching: boolean;
     syncing: boolean;

@@ -109,6 +109,7 @@ export default class DataSource<
       meta: observable,
 
       loading: computed,
+      syncing: computed,
 
       insert: action,
       add: action,
@@ -233,6 +234,10 @@ export default class DataSource<
 
   get loading() {
     return this.loadings.fetching;
+  }
+
+  get syncing() {
+    return this.loadings.syncing;
   }
 
   get primary(): keyof T & string {
